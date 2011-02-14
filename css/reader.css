@@ -1,0 +1,14 @@
+body {
+	text-align: center ;
+	background-color:#444444; 
+}
+#toolbar {
+	width: 800px;
+	margin: 0 auto;
+	text-align: left; 
+}
+#viewport {
+	display: none;
+	position: absolute ;
+	text-align: left;
+}
