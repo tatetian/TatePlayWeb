@@ -1,9 +1,14 @@
 body {
 	text-align: center ;
-	background-color:#444444;
+	background-color:#777777;
 	overflow: hidden;  
 }
-ol#toolbar {
+#toolbar {
+	height: 24px;
+	width: 100%;
+	background-color: rgba(0,0,0,0.8);
+}
+#toolbar ol {
 	width: 200px;
 	height: 24px;
 	margin: 0 auto;
@@ -11,11 +16,9 @@ ol#toolbar {
 	
 	list-style-type: none ;
 }
-ol#toolbar li {
+#toolbar ol li {
 	float: left ;
 	display: block; 
-	width: 24px ;
-	height: 24px ;
 	color: #fff;
 	margin: 0 10px 10px 0;
 }
@@ -31,18 +34,22 @@ ol#toolbar li {
 #zoom-fit-height {
 	background: url(/images/zoom-fit-height.png);
 }
-.page-control {
-	position:absolute;
+.control {
 	width: 24px;
 	height: 24px;
-	/*display: none;*/ 
+	display: block ;
+	opacity: 0.5;
+	filter: alpha(opacity=50) ;
+	z-index: 10 ;
 }
 #next-page {
+	position:absolute;
 	right: 24px ;
 	top: 50% ;
 	background: url(/images/next-page.png);
 }
 #pre-page {
+	position:absolute;
 	left: 24px ;
 	top: 50% ;
 	background: url(/images/pre-page.png);
