@@ -8,24 +8,23 @@ $(document).ready(function(){
 	$("head").append($css) ;
 	// step 2: load html for content
 	$("#viewport").load("/content/content.html", function() {
-		// viewport is horizontally centerred
-		centeringViewport() ;
+		onWindowResize() ;
 		// handle window resize event
-		$(window).resize(function() {
-			centeringViewport() ;
-		}) ;
+		$(window).resize(onWindowResize) ;
 		// show viewport
-		$(this).show(800) ;
+		$("#main").show(800) ;
 		// this function run only once
-		$(this).unbind("ready") ;
+		//$(this).unbind("load") ;
 	}) ;
 }) ;
-/*
- * Put viewport horizontally middle
- * */
-function centeringViewport() {
+
+function onWindowResize() {
+	// put content in the center
 	var windowWidth = $(window).width() ;
 	var width = $('#viewport img:first').width() ;
 	var left = (windowWidth - width) / 2 ;
+	$("#viewport").width(width) ;
 	$("#viewport").css("left", left) ;
+	// adjust the position of page control
+	//$("#next-page")
 }

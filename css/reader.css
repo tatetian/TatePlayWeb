@@ -1,14 +1,62 @@
 body {
 	text-align: center ;
-	background-color:#444444; 
+	background-color:#444444;
+	overflow: hidden;  
 }
-#toolbar {
-	width: 800px;
+ol#toolbar {
+	width: 200px;
+	height: 24px;
 	margin: 0 auto;
-	text-align: left; 
+	text-align: center;
+	
+	list-style-type: none ;
+}
+ol#toolbar li {
+	float: left ;
+	display: block; 
+	width: 24px ;
+	height: 24px ;
+	color: #fff;
+	margin: 0 10px 10px 0;
+}
+#zoom-in {
+	background: url(/images/zoom-in.png);
+}
+#zoom-out {
+	background: url(/images/zoom-out.png);
+}
+#zoom-fit-width {
+	background: url(/images/zoom-fit-width.png);
+}
+#zoom-fit-height {
+	background: url(/images/zoom-fit-height.png);
+}
+.page-control {
+	position:absolute;
+	width: 24px;
+	height: 24px;
+	/*display: none;*/ 
+}
+#next-page {
+	right: 24px ;
+	top: 50% ;
+	background: url(/images/next-page.png);
+}
+#pre-page {
+	left: 24px ;
+	top: 50% ;
+	background: url(/images/pre-page.png);
+}
+#main {
+	left: 0px;
+	top: 24px ;
+	bottom: 0px ;
+	width: 100%; 
+	overflow: auto ;
+	position: absolute ;
+	display: none;
 }
 #viewport {
-	display: none;
 	position: absolute ;
 	text-align: left;
 }
