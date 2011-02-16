@@ -2,6 +2,10 @@
 View static PDF as HTML in the middle of screen
 
 2011/02/15 Add UI Controls
-Added controls include: zoom-in, zoom-out, zoom-fit-width, zoom-fit-height, next-page, pre-page
+Add controls include: zoom-in, zoom-out, zoom-fit-width, zoom-fit-height, next-page, pre-page
 
-2011/02/16 Add PHP API to get PDF data  
+2011/02/16 Add PHP API to get PDF data in JSON
+Add PHP script to enable fake reset service that return PDF data in JSON format to user
+
+2011/02/16 UI controls completed
+Zooming and page controls are completed    

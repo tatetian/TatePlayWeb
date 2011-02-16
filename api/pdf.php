@@ -4,18 +4,18 @@
  * */
 $width = 849 ;  
 $height = 1049 ;
-$css = ".ft0{font-size:13px;font-family:Times;color:#000000;}
-.ft1{font-size:8px;font-family:Times;color:#000000;}
-.ft2{font-size:5px;font-family:Times;color:#000000;}
-.ft3{font-size:13px;font-family:Times;color:#000000;}
-.ft4{font-size:47px;font-family:Times;color:#000000;}
-.ft5{font-size:43px;font-family:Times;color:#000000;}
-.ft6{font-size:13px;line-height:18px;font-family:Times;color:#000000;}
-.ft7{font-size:5px;line-height:2px;font-family:Times;color:#000000;}
-.ft8{font-size:5px;line-height:4px;font-family:Times;color:#000000;}
-.ft9{font-size:5px;line-height:6px;font-family:Times;color:#000000;}
-.ft10{font-size:5px;line-height:3px;font-family:Times;color:#000000;}
-.ft11{font-size:13px;line-height:18px;font-family:Times;color:#000000;}" ;
+$css = ".ft0{font-size:130%;font-family:Times;color:#000000;}
+.ft1{font-size:80%;font-family:Times;color:#000000;}
+.ft2{font-size:50%;font-family:Times;color:#000000;}
+.ft3{font-size:130%;font-family:Times;color:#000000;}
+.ft4{font-size:470%;font-family:Times;color:#000000;}
+.ft5{font-size:430%;font-family:Times;color:#000000;}
+.ft6{font-size:130%;line-height:138%;font-family:Times;color:#000000;}
+.ft7{font-size:50%;line-height:80%;font-family:Times;color:#000000;}
+.ft8{font-size:50%;line-height:80%;font-family:Times;color:#000000;}
+.ft9{font-size:50%;line-height:120%;font-family:Times;color:#000000;}
+.ft10{font-size:50%;line-height:60%;font-family:Times;color:#000000;}
+.ft11{font-size:130%;line-height:138%;font-family:Times;color:#000000;}" ;
 $html = '<div style="position:absolute;top:0;left:0"><img width="849" height="1089" src="/content/page_fig.png"></div><div style="position:absolute;top:53;left:41"><nobr><span class="ft6">durchaus segensreich empfinden: Die<br>Kurzkritik an Reuters Buch ,,Schein<br>und Wirklichkeit" (,,Wir lehnen ein<br>solches Vorgehen entschieden ab")<br>trug dem Vorsitzenden den größten<br>Beifall ein. Die kritische Beschäfti-<br>gung mit dem alten Regime ist längst<br>zum sozialen Kitt im affären- und kri-<br>sengeschüttelten Konzern geworden. </span></nobr></div> 
 <div style="position:absolute;top:215;left:71"><nobr><span class="ft0">Noch einmal betonte Schrempp</span></nobr></div> 
 <div style="position:absolute;top:233;left:41"><nobr><span class="ft6">deshalb den Kulturwandel: ,,Die Zei-<br>ten, die Inhalte, der Umgang miteinan-<br>der haben sich geändert ­ und damit<br>auch die Form dieser Veranstaltung.<br>Wir wollen keine Verkündigung von</span></nobr></div> 
@@ -49,7 +49,9 @@ $html = '<div style="position:absolute;top:0;left:0"><img width="849" height="10
  * Output data in JSON format
  * */
 header('Content-type: application/json');
-$pdf_content = array('height'=> $height, 'width'=>$width, 'css'=>$css, 'html'=>$html) ;
+$pdf_content = array('doc_id'=> 0, 'page_id'=>0, 'page_num'=>1,
+					'height'=> $height, 'width'=>$width, 
+					'css'=>$css, 'html'=>$html) ;
 $pdf_content_in_json = json_encode($pdf_content) ; 
 print($pdf_content_in_json) ;
 ?>
