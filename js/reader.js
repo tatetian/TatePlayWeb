@@ -4,20 +4,26 @@
 $(document).ready(function(){
 	// add event handlers to controls
 	addEventHandlerToControls() ;
-	// load page content
-	// step 1: load css for content
-	var $css = $('<link href="/content/content.css" rel="stylesheet" media="all" />') ;
-	$("head").append($css) ;
-	// step 2: load html for content
-	$("#viewport").load("/content/content.html", function() {
+	
+	// load the pdf
+	$.get("/api/pdf.php", {}, function(data) {
+		// append the css
+		$css = $('<stle media="screen" type="text/css"></style>') ;
+		$css.append(data.css) ;
+		$('head').append($css) ;
+		// append the pdf content
+		$viewport = $('#viewport') ; 
+		$viewport.append(data.html) ;
+		// set viewport size
+		$viewport.width(data.width) ;
+		$viewport.height(data.height) ;
+		// adjust elements
 		onWindowResize() ;
 		// handle window resize event
 		$(window).resize(onWindowResize) ;
 		// show viewport
-		$("#main").show(800) ;
-		// this function run only once
-		//$(this).unbind("load") ;
-	}) ;
+		$("#main").show(800) ;	
+	}, "json") ;
 }) ;
 
 function addEventHandlerToControls() {
@@ -43,10 +49,7 @@ function zoom(factor) {
 function onWindowResize() {
 	// put content in the center
 	var windowWidth = $(window).width() ;
-	var width = $('#viewport img:first').width() ;
+	var width = $('#viewport').width() ;
 	var left = (windowWidth - width) / 2 ;
-	$("#viewport").width(width) ;
 	$("#viewport").css("left", left) ;
-	// adjust the position of page control
-	//$("#next-page")
 }
