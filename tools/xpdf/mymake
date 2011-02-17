@@ -1,0 +1,3 @@
+#!/bin/sh
+# To compile xpdf, you have to install freetype and lesstif dev package using apt-get
+./configure --with-freetype2-includes=/usr/include/freetype2/ --with-freetype2-library=/usr/lib
