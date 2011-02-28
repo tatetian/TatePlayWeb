@@ -32,7 +32,8 @@
 #include "HtmlFonts.h"
 
 #define PRINT_FUNC_CALL
-
+#include <assert.h>
+#include <UTF8.h>
 
 int HtmlPage::pgNum=0;
 int HtmlOutputDev::imgNum=1;
@@ -252,7 +253,6 @@ void HtmlPage::conv(){
 
      if (tmp->htext) delete tmp->htext; 
      tmp->htext=HtmlFont::simple(h,tmp->text,tmp->len);
-
      if (links->inLink(tmp->xMin,tmp->yMin,tmp->xMax,tmp->yMax, linkIndex)){
        tmp->link = links->getLink(linkIndex);
        /*GString *t=tmp->htext;
@@ -323,15 +323,23 @@ void HtmlPage::endString() {
   if (rawOrder) {
     p1 = yxCur1;
     p2 = NULL;
-  } else if ((!yxCur1 ||
+  }
+  else if ((!yxCur1 ||
               (y1 >= yxCur1->yMin &&
                (y2 >= yxCur1->yMax || curStr->xMax >= yxCur1->xMin))) &&
              (!yxCur2 ||
               (y1 < yxCur2->yMin ||
                (y2 < yxCur2->yMax && curStr->xMax < yxCur2->xMin)))) {
+	// The function always keep yxCur1 and yxCur2 as the positions
+	// between which curStr are inserted at the last time.
+	// Usually, newString() are called in order compatible with y-major order.
+	// Thus, we first give the last insertion position a try.
+	// If we guess wrong, we have to find the position in linear time
+	// (as shown in the last branch of this "if" statement)
     p1 = yxCur1;
     p2 = yxCur2;
   } else {
+	// find p1 and p2 between which curStr can be inserted
     for (p1 = NULL, p2 = yxStrings; p2; p1 = p2, p2 = p2->yxNext) {
       if (y1 < p2->yMin || (y2 < p2->yMax && curStr->xMax < p2->xMin))
         break;
@@ -339,6 +347,7 @@ void HtmlPage::endString() {
     yxCur2 = p2;
   }
   yxCur1 = curStr;
+  // insert curStr between p1 and p2
   if (p1)
     p1->yxNext = curStr;
   else
@@ -355,6 +364,7 @@ void HtmlPage::coalesce() {
   int n, i;
   double curX, curY;
 
+  printf("begin of coalesce() : yxStrings->htext==%s\n", yxStrings->htext->getCString()) ;
 #if 0 //~ for debugging
   for (str1 = yxStrings; str1; str1 = str1->yxNext) {
     printf("x=%f..%f  y=%f..%f  size=%2d '",
@@ -584,7 +594,7 @@ void HtmlPage::coalesce() {
   }
   printf("\n------------------------------------------------------------\n\n");
 #endif
-
+  printf("end of coalesce() : yxStrings->htext==%s\n", yxStrings->htext->getCString()) ;
 }
 
 void HtmlPage::dumpAsXML(FILE* f,int page){  
@@ -642,8 +652,8 @@ void HtmlPage::dumpComplex(FILE *file, int page){
 	      DOCTYPE, page);
 
       htmlEncoding = HtmlOutputDev::mapEncodingToHtml
-	  (globalParams->getTextEncodingName());
-      fprintf(pageFile, "<META http-equiv=\"Content-Type\" content=\"text/html; charset=%s\">\n", htmlEncoding);
+(globalParams->getTextEncodingName());
+      fprintf(pageFile, "<META http-equiv=\"Content-Type\" content=\"text/html; charset=%s\"/>\n", "utf-8");
   }
   else 
   {
@@ -810,6 +820,7 @@ GString* HtmlMetaVar::toString()
 //------------------------------------------------------------------------
 
 static char* HtmlEncodings[][2] = {
+	{"utf-8", "utf-8"},
     {"Latin1", "ISO-8859-1"},
     {NULL, NULL}
 };
@@ -825,7 +836,7 @@ char* HtmlOutputDev::mapEncodingToHtml(GString* encoding)
 	    return HtmlEncodings[i][1];
 	}
     }
-    return enc; 
+    return enc;
 }
 
 void HtmlOutputDev::doFrame(int firstPage){
@@ -847,7 +858,7 @@ void HtmlOutputDev::doFrame(int firstPage){
   fputs("\n<HEAD>",fContentsFrame);
   fprintf(fContentsFrame,"\n<TITLE>%s</TITLE>",docTitle->getCString());
   htmlEncoding = mapEncodingToHtml(globalParams->getTextEncodingName());
-  fprintf(fContentsFrame, "\n<META http-equiv=\"Content-Type\" content=\"text/html; charset=%s\">\n", htmlEncoding);
+  fprintf(fContentsFrame, "\n<META http-equiv=\"Content-Type\" content=\"text/html; charset=%s\"/>\n", "utf-8");
   dumpMetaVars(fContentsFrame);
   fprintf(fContentsFrame, "</HEAD>\n");
   fputs("<FRAMESET cols=\"100,*\">\n",fContentsFrame);
@@ -1075,7 +1086,12 @@ void HtmlOutputDev::endPage() {
 
 void HtmlOutputDev::updateFont(GfxState *state) {
   #ifdef PRINT_FUNC_CALL
-    printf("\tupdateFont()\n");
+	if(!state || !state->getFont() || !state->getFont()->getOrigName())
+		printf("\tupdateFont(): state=%i, font_name=%s\n", state, "X");
+	else {
+		char *font_name = state->getFont()->getOrigName()->getCString();
+		printf("\tupdateFont(): state=%i, font_name=%s\n", state, font_name);
+	}
   #endif
   pages->updateFont(state);
 }
@@ -1103,8 +1119,16 @@ void HtmlOutputDev::drawChar(GfxState *state, double x, double y,
 	      CharCode code, Unicode *u, int uLen) 
 {
   #ifdef PRINT_FUNC_CALL
-    printf("\t\tdrawChar():state=%i, x=%e, y=%e, dx=%e, dy=%e, originX=%e, originY=%e, code=%u, unicode=%c, uLen=%i\n", 
-            state, x, y, dx, dy, originX, originY, code, *u, uLen) ;
+	char* utf8_str = new char[uLen*4+1] ;
+	memset(utf8_str, 0, uLen*4+1) ;
+	int total = 0, l = 0 ;
+	for(int i = 0; i < uLen ; ++i) {
+		l = mapUTF8(u[i], utf8_str+total, uLen*4 - total) ;
+		total += l ;
+	}
+    printf("\t\tdrawChar():state=%i, x=%e, y=%e, dx=%e, dy=%e, originX=%e, originY=%e, code=%u, unicode=%u, uLen=%i, utf8_str=%s\n",
+            state, x, y, dx, dy, originX, originY, code, *u, uLen, utf8_str) ;
+    delete [] utf8_str ;
   #endif
   if ( !showHidden && (state->getRender() & 3) == 3) {
     return;
@@ -1210,7 +1234,7 @@ void HtmlOutputDev::drawImage(GfxState *state, Object *ref, Stream *str,
 			  int width, int height, GfxImageColorMap *colorMap,
 			  int *maskColors, GBool inlineImg) {
   #ifdef PRINT_FUNC_CALL
-     printf("\tdrawImage(): state=%i, ref=%s, str=%s, width=%i, height=%i, colorMap=%s, ...\n", 
+     printf("\tdrawImage(): state=%i, ref=%s, str=%s, width=%i, height=%i, colorMap=..., ...\n",
              state, "...", "...", width, height) ;
   #endif
   int i, j;
@@ -1314,12 +1338,12 @@ void HtmlOutputDev::drawImage(GfxState *state, Object *ref, Stream *str,
 
 void HtmlOutputDev::drawLink(Link* link,Catalog *cat){
   #ifdef PRINT_FUNC_CALL
-    printf("drawLink(): ")
+    printf("drawLink(): link=") ;
   #endif 
-  double _x1,_y1,_x2,_y2,w;
+  double _x1,_y1,_x2,_y2;
   int x1,y1,x2,y2;
   
-  link->getBorder(&_x1,&_y1,&_x2,&_y2,&w);
+  link->getRect(&_x1,&_y1,&_x2,&_y2);
   cvtUserToDev(_x1,_y1,&x1,&y1);
   
   cvtUserToDev(_x2,_y2,&x2,&y2); 

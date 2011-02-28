@@ -141,6 +141,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (textEncName[0]) {
+	// TODO: Change the default encoding to UTF-8
     globalParams->setTextEncoding(textEncName);
     if( !globalParams->getTextEncoding() )  {
 	goto error;    
@@ -244,15 +245,14 @@ int main(int argc, char *argv[]) {
   if( !docTitle ) docTitle = new GString(htmlFileName);
 
   /* determine extensions of output backgroun images */
-  {int i;
-  for(i = 0; extsList[i]; i++)
+  for(int i = 0; extsList[i]; i++)
   {
 	  if( strstr(gsDevice, extsList[i]) != (char *) NULL )
 	  {
 		  strncpy(extension, extsList[i], sizeof(extension));
 		  break;
 	  }
-  }}
+  }
 
   rawOrder = complexMode; // todo: figure out what exactly rawOrder do :)
 
