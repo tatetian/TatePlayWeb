@@ -31,6 +31,8 @@
 #include "HtmlOutputDev.h"
 #include "HtmlFonts.h"
 
+#define PRINT_FUNC_CALL
+
 
 int HtmlPage::pgNum=0;
 int HtmlOutputDev::imgNum=1;
@@ -46,6 +48,12 @@ extern GBool xml;
 extern GBool showHidden;
 extern GBool noMerge;
 
+/* *
+ * Extract the file name of a file path
+ *
+ * e.g. extract the file name "pdftohtml.zip" from 
+ * the path "/home/tian/Downloads/pdftohtml.zip"
+ * */
 static GString* basename(GString* str){
   
   char *p=str->getCString();
@@ -55,7 +63,12 @@ static GString* basename(GString* str){
       return new GString((p+i+1),len-i-1);
   return new GString(str);
 }
-
+/* *
+ * Extract the directory of a file path
+ *
+ * e.g. extract the directory path "/home/tian/Downloads/" from 
+ * a file path "/home/tian/Downloads/pdftohtml.zip"
+ * */
 static GString* Dirname(GString* str){
   
   char *p=str->getCString();
@@ -115,6 +128,9 @@ HtmlString::~HtmlString() {
   gfree(xRight);
 }
 
+/**
+ * Add one more character to the string, resize if necessary
+ * */
 void HtmlString::addChar(GfxState *state, double x, double y,
 			 double dx, double dy, Unicode u) {
   if (dir == textDirUnknown) {
@@ -134,7 +150,9 @@ void HtmlString::addChar(GfxState *state, double x, double y,
 //printf("added char: %f %f xright = %f\n", x, dx, x+dx);
   ++len;
 }
-
+/**
+ * Reverse the string if the direction character is from right to left
+ * */
 void HtmlString::endString()
 {
   if( dir == textDirRightLeft && len > 1 )
@@ -176,7 +194,11 @@ HtmlPage::~HtmlPage() {
   if (links) delete links;
   if (imgExt) delete imgExt;  
 }
-
+/**
+ * Update the font 
+ *
+ * If the font is Type 3, do some addition steps
+ * */
 void HtmlPage::updateFont(GfxState *state) {
   GfxFont *font;
   double *fm;
@@ -991,6 +1013,9 @@ HtmlOutputDev::~HtmlOutputDev() {
 
 
 void HtmlOutputDev::startPage(int pageNum, GfxState *state) {
+#ifdef PRINT_FUNC_CALL
+    printf("startPage():pageNum=%i, state=%i\n", pageNum, state) ;
+#endif
   /*if (mode&&!xml){
     if (write){
       write=gFalse;
@@ -1031,6 +1056,9 @@ void HtmlOutputDev::startPage(int pageNum, GfxState *state) {
 
 
 void HtmlOutputDev::endPage() {
+  #ifdef PRINT_FUNC_CALL
+    printf("endPage()\n");
+  #endif
   pages->conv();
   pages->coalesce();
   pages->dump(page, pageNum);
@@ -1046,14 +1074,26 @@ void HtmlOutputDev::endPage() {
 }
 
 void HtmlOutputDev::updateFont(GfxState *state) {
+  #ifdef PRINT_FUNC_CALL
+    printf("\tupdateFont()\n");
+  #endif
   pages->updateFont(state);
 }
 
 void HtmlOutputDev::beginString(GfxState *state, GString *s) {
+  #ifdef PRINT_FUNC_CALL 
+    if(s)
+        printf("\tbeginString():state=%i, s=%s\n", state, s->getCString()) ;
+    else
+        printf("\tbeginString():state=%i, s=%s\n", state, "") ;
+  #endif
   pages->beginString(state, s);
 }
 
 void HtmlOutputDev::endString(GfxState *state) {
+  #ifdef PRINT_FUNC_CALL
+    printf("\tendString():state=%i\n", state) ;
+  #endif
   pages->endString();
 }
 
@@ -1062,6 +1102,10 @@ void HtmlOutputDev::drawChar(GfxState *state, double x, double y,
 	      double originX, double originY,
 	      CharCode code, Unicode *u, int uLen) 
 {
+  #ifdef PRINT_FUNC_CALL
+    printf("\t\tdrawChar():state=%i, x=%e, y=%e, dx=%e, dy=%e, originX=%e, originY=%e, code=%u, unicode=%c, uLen=%i\n", 
+            state, x, y, dx, dy, originX, originY, code, *u, uLen) ;
+  #endif
   if ( !showHidden && (state->getRender() & 3) == 3) {
     return;
   }
@@ -1071,7 +1115,10 @@ void HtmlOutputDev::drawChar(GfxState *state, double x, double y,
 void HtmlOutputDev::drawImageMask(GfxState *state, Object *ref, Stream *str,
 			      int width, int height, GBool invert,
 			      GBool inlineImg) {
-
+  #ifdef PRINT_FUNC_CALL
+    printf("\tdrawImageMask(): state=%i, ref=%s, str=%s, width=%i, height=%i, ...\n", 
+            state, "...", "...", width, height) ;
+  #endif
   int i, j;
   
   if (ignore||complexMode) {
@@ -1162,7 +1209,10 @@ void HtmlOutputDev::drawImageMask(GfxState *state, Object *ref, Stream *str,
 void HtmlOutputDev::drawImage(GfxState *state, Object *ref, Stream *str,
 			  int width, int height, GfxImageColorMap *colorMap,
 			  int *maskColors, GBool inlineImg) {
-
+  #ifdef PRINT_FUNC_CALL
+     printf("\tdrawImage(): state=%i, ref=%s, str=%s, width=%i, height=%i, colorMap=%s, ...\n", 
+             state, "...", "...", width, height) ;
+  #endif
   int i, j;
    
   if (ignore||complexMode) {
@@ -1263,6 +1313,9 @@ void HtmlOutputDev::drawImage(GfxState *state, Object *ref, Stream *str,
 
 
 void HtmlOutputDev::drawLink(Link* link,Catalog *cat){
+  #ifdef PRINT_FUNC_CALL
+    printf("drawLink(): ")
+  #endif 
   double _x1,_y1,_x2,_y2,w;
   int x1,y1,x2,y2;
   
