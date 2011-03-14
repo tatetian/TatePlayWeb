@@ -1,0 +1,12 @@
+.deps
+.libs
+Makefile
+Makefile.in
+pdffonts
+pdfimages
+pdfinfo
+pdftohtml
+pdftoppm
+pdftops
+pdftotext
+pdftoabw
