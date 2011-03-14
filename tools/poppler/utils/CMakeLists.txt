@@ -89,3 +89,11 @@ if (ENABLE_ABIWORD)
   install(TARGETS pdftoabw DESTINATION bin)
 endif (ENABLE_ABIWORD)
 
+# pdftohtml
+set(pdftojson_SOURCES ${common_srcs}
+  pdftojson
+  JsonOutputDev.cc
+)
+add_executable(pdftojson ${pdftojson_SOURCES})
+target_link_libraries(pdftojson ${common_libs})
+install(TARGETS pdftojson DESTINATION bin)
