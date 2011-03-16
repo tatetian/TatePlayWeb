@@ -15,64 +15,41 @@ var reader = {
  * */
 $(document).ready(function(){
 	// add event handlers to controls
-	//addEventHandlerToControls() ;
+	addEventHandlerToControls() ;
 	// handle window resize event
-	//$(window).resize(onWindowResize) ;
+	$(window).resize(onWindowResize) ;
 	// load the pdf
 	loadPage(reader.docId, reader.pageNum) ;
 }) ;
 
 function loadPage(docId, pageNum) {
-/*	if(!reader.empty) {
+	if(!reader.empty) {
 		// hide viewport
 		$("#main").hide();
 	}
-*/
+    // clear up
+	$('#viewport-background').attr("src","") ;
+	// now the viewport is empty
+	reader.empty = true;
+	
     // load pdf image
-//    $.get("/api/pdf_img.php", {doc_id: docId, page_num:pageNum})
-    $("#pdf-image").attr("src", "/api/pdf_img.php?doc_id="+docId+"&page_num="+pageNum);
-
-    //$("#viewport").width(800);
-    //$("#viewport").height(1000);
-    $("#main").show(800);
-    // load content
-	$.get("/api/pdf_data.php", {doc_id: docId, page_num:pageNum}, function(data) {
-        var width = data.pages[reader.pageNum].pageWidth;
+    $("#viewport-background").attr("src", 
+    		"/api/pdf_img.php?doc_id="+docId+"&page_num="+pageNum);
+    // load pdf data
+	$.get("/api/pdf_data.php", {doc_id: docId, page_num:pageNum}, function(data) {		
+		var width = data.pages[reader.pageNum].pageWidth;
         var height = data.pages[reader.pageNum].pageHeight;
-        $("#pdf-image").attr("width", width);
-        $("#pdf-image").attr("height", height);
-        //alert(width+","+height);
-        /*
-		// clear up
-		// remove existing css
-		$('head style').remove() ;
-		// remove existing html of content
-		$('#viewport').empty() ;
-		// reset base font size
-		$('#viewport').css('font-size','10px') ;
-		// now the viewport is empty
-		reader.empty = true;
-		
-		// append the css
-		$css = $('<style media="screen" type="text/css"></style>') ;
-		$css.append(data.css) ;
-		$('head').append($css) ;
-		// append the pdf content
-		$viewport = $('#viewport') ; 
-		$viewport.append(data.html) ;
+        $("#viewport").width(width);
+        $("#viewport").height(height);
+        $("#main").show(800);
 		// reader is no longer empty
 		reader.empty = false ;
-		// set viewport size
-		$viewport.width(data.width) ;
-		$viewport.height(data.height) ;
 		// update page id
-		reader.pageId = data.pageId ;
-		// show viewport
-		$("#main").show(800) ;
+		reader.pageNum = data.pageNum;
 		// zoom
 		zoomFactor = reader.zoomFactor ;
 		reader.zoomFactor = 1.0 ;
-		zoom(zoomFactor) ;*/
+		zoom(zoomFactor) ;
 	}, "json") ;
 }
 
@@ -150,7 +127,7 @@ function onWindowResize() {
 	keepZoomMode() ;
 }
 
-function putViewportMiddle() {
+function keepViewportCenter() {
 	// put content in the center
 	var windowWidth = $(window).width() ;
 	var width = $('#viewport').width() ;
