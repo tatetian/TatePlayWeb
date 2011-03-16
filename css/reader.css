@@ -63,6 +63,10 @@ body {
 	overflow: auto ;
 	position: absolute ;
 	display: none;
+    background-repeat:no-repeat;
+}
+#pdf-image {
+    background-color:ffffff;
 }
 #viewport {
 	position: absolute ;

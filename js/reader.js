@@ -5,8 +5,8 @@ var reader = {
 	zoomFactor: 1.00,
 	zoomMode: 'normal',	// 3 possible values: normal, fit-width, fit-height
 	docId: 0,
-	pageId: 0,
-	pageNum: 3,
+	pageNum: 0,
+	pages: 3,
 	empty: true
 } ;
 
@@ -15,21 +15,34 @@ var reader = {
  * */
 $(document).ready(function(){
 	// add event handlers to controls
-	addEventHandlerToControls() ;
+	//addEventHandlerToControls() ;
 	// handle window resize event
-	$(window).resize(onWindowResize) ;
+	//$(window).resize(onWindowResize) ;
 	// load the pdf
-	loadPage(reader.docId, reader.pageId) ;
+	loadPage(reader.docId, reader.pageNum) ;
 }) ;
 
-function loadPage(docId, pageId) {
-	if(!reader.empty) {
+function loadPage(docId, pageNum) {
+/*	if(!reader.empty) {
 		// hide viewport
 		$("#main").hide();
 	}
-	
-	// load content
-	$.get("/api/pdf.php", {doc_id: docId, page_id:pageId}, function(data) {
+*/
+    // load pdf image
+//    $.get("/api/pdf_img.php", {doc_id: docId, page_num:pageNum})
+    $("#pdf-image").attr("src", "/api/pdf_img.php?doc_id="+docId+"&page_num="+pageNum);
+
+    //$("#viewport").width(800);
+    //$("#viewport").height(1000);
+    $("#main").show(800);
+    // load content
+	$.get("/api/pdf_data.php", {doc_id: docId, page_num:pageNum}, function(data) {
+        var width = data.pages[reader.pageNum].pageWidth;
+        var height = data.pages[reader.pageNum].pageHeight;
+        $("#pdf-image").attr("width", width);
+        $("#pdf-image").attr("height", height);
+        //alert(width+","+height);
+        /*
 		// clear up
 		// remove existing css
 		$('head style').remove() ;
@@ -59,7 +72,7 @@ function loadPage(docId, pageId) {
 		// zoom
 		zoomFactor = reader.zoomFactor ;
 		reader.zoomFactor = 1.0 ;
-		zoom(zoomFactor) ;
+		zoom(zoomFactor) ;*/
 	}, "json") ;
 }
 
