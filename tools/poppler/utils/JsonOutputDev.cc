@@ -19,10 +19,20 @@
 #define min(a,b) ( ((a)<(b))?(a):(b) )
 #endif
 
-
+void escapeJsonString(GooString* str) {
+  for(int i = 0; i < str->getLength(); ++i) {
+    switch(str->getChar(i)) {
+    case '\"':
+    case '\\':
+      str->insert(i, '\\');
+      ++i ;
+      break;
+    }
+  }
+}
 ExtractedString::ExtractedString(GfxState *state, double fontSize)
   :unicodes(NULL),
-   size(0), capacity(0),
+   size(0), capacity(1),
    yxNext(NULL),
    x(0), y(0),
    xMin(0), xMax(0), yMin(0), yMax(0),
@@ -43,6 +53,9 @@ ExtractedString::ExtractedString(GfxState *state, double fontSize)
   }
   yMin = y - ascent * fontSize ;
   yMax = y - descent * fontSize ;
+
+
+  unicodes = (Unicode*) gmalloc(sizeof(Unicode)*capacity) ;
 }
 
 ExtractedString::ExtractedString(const ExtractedString& another)
@@ -59,29 +72,22 @@ ExtractedString::ExtractedString(const ExtractedString& another)
 {
   if(another.unicodes == NULL || capacity == 0)
     return;
-  unicodes = new Unicode[capacity] ;
-  //unicodes = (Unicode*) gmalloc(capacity * sizeof(Unicode));
+  unicodes = (Unicode*) gmalloc(capacity * sizeof(Unicode));
   memcpy(unicodes, another.unicodes, size * sizeof(Unicode));
 }
 
 ExtractedString::~ExtractedString()
 {
-  //gfree(unicodes) ;
-  delete [] unicodes;
+  gfree(unicodes) ;
 }
 
 void ExtractedString::addChar(GfxState *state, double x, double y,
     double dx, double dy, Unicode u)
 {
   if (size == capacity) {
-    Unicode* tmp;
     capacity += 16;
-    //unicodes = (Unicode*) grealloc(unicodes,
-    //    capacity * sizeof(Unicode));
-    tmp = new Unicode[capacity];
-    memcpy(tmp, unicodes, sizeof(Unicode)*size);
-    if(unicodes) delete [] unicodes;
-    unicodes = tmp;
+    unicodes = (Unicode*) grealloc(unicodes,
+        capacity * sizeof(Unicode));
   }
   unicodes[size] = u;
   if (size == 0) {
@@ -121,12 +127,8 @@ void ExtractedString::append(const ExtractedString& another)
 {
   int newSize = size + another.size;
   if (capacity < newSize) {
-    //unicodes = (Unicode*) grealloc(
-    //    unicodes, sizeof(Unicode) * (newSize+16));
-    Unicode* tmp = new Unicode[newSize+16];
-    memcpy(tmp, unicodes, sizeof(Unicode)*size);
-    delete [] unicodes;
-    unicodes = tmp;
+    unicodes = (Unicode*) grealloc(
+        unicodes, sizeof(Unicode) * (newSize+16));
   }
   memcpy(unicodes+size, another.unicodes, sizeof(Unicode) * another.size) ;
   size += another.size;
@@ -259,17 +261,17 @@ void JsonOutputDev::outputPageAsJSON()
   double xi, dxi;
   GooString* tmpStr;
 
-  printf("\t{\n");
-  printf("\tpageNum:%d, pageWidth:%d, pageHeight:%d,\n",
+  printf("\t{");
+  printf("\"pageNum\":%d, \"pageWidth\":%d, \"pageHeight\":%d,\n",
       pageNum, pageWidth, pageHeight);
-  printf("\tblocks:[\n");
+  printf("\t\"blocks\":[\n");
   for(ExtractedBlock* b=blocks; b; b=b->getNextBlock()) {
     b->getPosition(&x, &y);
     b->getBoxSize(&w, &h);
-    printf("\t\t{\n");
-    printf("\t\t\tx:%d, y:%d, w:%d, h:%d,\n",
+    printf("\t\t{");
+    printf("\"x\":%d, \"y\":%d, \"w\":%d, \"h\":%d,\n",
         double2Int(x), double2Int(y), double2Int(w), double2Int(h));
-    printf("\t\t\tq:[");
+    printf("\t\t\"q\":[");
     for(ExtractedString *curStr=b->toArray(); curStr; curStr=curStr->getNext()) {
       xi = curStr->getXMin();
       dxi = curStr->getXMax() - xi;
@@ -278,19 +280,22 @@ void JsonOutputDev::outputPageAsJSON()
         printf(", ");
     }
     printf("],\n");
-    printf("\t\t\tt:[");
+    printf("\t\t\"t\":[");
     for(ExtractedString *curStr=b->toArray(); curStr; curStr=curStr->getNext()) {
       tmpStr = curStr->toString();
+      escapeJsonString(tmpStr);
       printf("\"%s\"", tmpStr->getCString());
       delete tmpStr;
       if(curStr->getNext())
         printf(", ");
     }
-    printf("]\n");
-    printf("\t\t}\n");
+    printf("]");
+    printf("}");
+    if(b->getNextBlock())
+      printf(",");
+    printf("\n");
   }
-  printf("\t]");
-  printf("\t}\n");
+  printf("\t]}");
 }
 
 bool JsonOutputDev::areTwoStringSeparate(

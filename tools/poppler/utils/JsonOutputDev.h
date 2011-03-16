@@ -19,6 +19,7 @@
 #include "Page.h"
 #include "gtypes.h"
 
+void escapeJsonString(GooString* str) ;
 
 class ExtractedString
 {

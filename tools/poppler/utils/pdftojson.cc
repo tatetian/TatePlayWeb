@@ -196,19 +196,32 @@ int main(int argc, char *argv[])
           firstPage,
           doc->getCatalog()->getOutline()->isDict());*/
   jsonOut = new JsonOutputDev() ;
+
+  if (jsonOut->isOk())
+  {
+    escapeJsonString(docTitle);
+    if(author) escapeJsonString(author);
+    printf("{\"docId\":1, \"title\":\"%s\", \"author\":\"%s\",\n",
+        docTitle->getCString(), author? author->getCString():"");
+    printf("\"pages\":[\n");
+    for(int i = argFirstPage; i <= argLastPage; ++i) {
+      doc->displayPage(jsonOut, i, hDPI, vDPI,
+          0, gTrue, gFalse, gFalse,
+          NULL, NULL, NULL, NULL);
+      if(i != argLastPage)
+        printf(",");
+      printf("\n");
+    }
+    printf("]}") ;
+  }
+
+  delete jsonOut;
+
   delete docTitle;
   if( author ) delete author;
   if( keywords ) delete keywords;
   if( subject ) delete subject;
   if( date ) delete date;
-
-  if (jsonOut->isOk())
-  {
-    doc->displayPages(jsonOut, argFirstPage, argLastPage, hDPI, vDPI,
-        0, gTrue, gFalse, gFalse);
-  }
-
-  delete jsonOut;
 
   // clean up
  error:
