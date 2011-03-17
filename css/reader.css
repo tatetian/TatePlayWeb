@@ -65,9 +65,6 @@ body {
 	display: none;
     background-repeat:no-repeat;
 }
-#pdf-image {
-    background-color:ffffff;
-}
 #viewport {
 	position: absolute ;
 	text-align: left;
