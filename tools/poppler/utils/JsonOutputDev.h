@@ -45,6 +45,7 @@ public:
   double getCharAvgWidth() const {return charAvgWidth;}
   ExtractedString* getNext() {return yxNext;}
   void setNext(ExtractedString* next) {yxNext=next;}
+  void updateBox(const ExtractedString& str);
 private:
   double x, y;
   double yMin, yMax, xMin, xMax ;

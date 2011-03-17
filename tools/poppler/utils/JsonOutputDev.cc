@@ -70,8 +70,6 @@ ExtractedString::ExtractedString(const ExtractedString& another)
    charAvgSpace(another.charAvgSpace),
    charAvgWidth(another.charAvgWidth)
 {
-  if(another.unicodes == NULL || capacity == 0)
-    return;
   unicodes = (Unicode*) gmalloc(capacity * sizeof(Unicode));
   memcpy(unicodes, another.unicodes, size * sizeof(Unicode));
 }
@@ -133,6 +131,16 @@ void ExtractedString::append(const ExtractedString& another)
   memcpy(unicodes+size, another.unicodes, sizeof(Unicode) * another.size) ;
   size += another.size;
   capacity = newSize + 16;
+
+  updateBox(another);
+}
+
+void ExtractedString::updateBox(const ExtractedString& str)
+{
+  xMin = min(xMin, str.getXMin());
+  xMax = max(xMax, str.getXMax());
+  yMin = min(yMin, str.getYMin());
+  yMax = max(yMax, str.getYMax());
 }
 
 ExtractedBlock::ExtractedBlock()
@@ -234,10 +242,16 @@ void JsonOutputDev::endPage() {
       newBlock = false;
     }
     if (newString) {
+      GooString* tmp = curStr->toString();
+      //printf(" %s", tmp->getCString()) ;
+      delete tmp;
       curBlock->addString(*curStr);
       newString = false;
     }
     else {
+      GooString* tmp = curStr->toString();
+      //printf("%s", tmp->getCString()) ;
+      delete tmp;
       curBlock->mergeLastStr(*curStr);
     }
     if (curStr->yxNext && curStr->yxNext->yMin==curStr->yMin) {
@@ -247,6 +261,7 @@ void JsonOutputDev::endPage() {
     else {
       newBlock = true;
       newString = true;
+//      printf("\n");
     }
   }
 
@@ -269,8 +284,8 @@ void JsonOutputDev::outputPageAsJSON()
     b->getPosition(&x, &y);
     b->getBoxSize(&w, &h);
     printf("\t\t{");
-    printf("\"x\":%d, \"y\":%d, \"w\":%d, \"h\":%d,\n",
-        double2Int(x), double2Int(y), double2Int(w), double2Int(h));
+    printf("\"l\":%d, \"t\":%d, \"r\":%d, \"b\":%d,\n",
+        double2Int(x), double2Int(y), double2Int(x+w), double2Int(y+h));
     printf("\t\t\"q\":[");
     for(ExtractedString *curStr=b->toArray(); curStr; curStr=curStr->getNext()) {
       xi = curStr->getXMin();
@@ -280,7 +295,7 @@ void JsonOutputDev::outputPageAsJSON()
         printf(", ");
     }
     printf("],\n");
-    printf("\t\t\"t\":[");
+    printf("\t\t\"s\":[");
     for(ExtractedString *curStr=b->toArray(); curStr; curStr=curStr->getNext()) {
       tmpStr = curStr->toString();
       escapeJsonString(tmpStr);
@@ -290,7 +305,18 @@ void JsonOutputDev::outputPageAsJSON()
         printf(", ");
     }
     printf("]");
-    printf("}");
+    // debug
+    printf(",\n");
+    printf("\t\t\"ss\":\"");
+        for(ExtractedString *curStr=b->toArray(); curStr; curStr=curStr->getNext()) {
+          tmpStr = curStr->toString();
+          escapeJsonString(tmpStr);
+          printf("%s", tmpStr->getCString());
+          delete tmpStr;
+          if(curStr->getNext())
+            printf(" ");
+        }
+    printf("\"}");
     if(b->getNextBlock())
       printf(",");
     printf("\n");
