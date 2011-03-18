@@ -6,7 +6,7 @@ var reader = {
 	zoomMode: 'normal',	// 3 possible values: normal, fit-width, fit-height
 	docId: 0,
 	pageNum: 1, // starting from 1, not 0
-	pages: 3,
+	pages: 9,
 	empty: true,
 	selectingBox: undefined,
     selectedArea: undefined,
@@ -90,6 +90,25 @@ function copyText(block) {
 $(document).ready(function(){
 	// load the pdf
 	loadPage(reader.docId, reader.pageNum) ;
+	// load pdf data
+	$.get("/api/pdf_data.php", {}, function(data) {		
+        reader.data = data;
+        var block = reader.data.pages[0].blocks;
+        // now the viewport is empty
+	    reader.empty = true;
+		var width = data.pages[reader.pageNum-1].pageWidth;
+        var height = data.pages[reader.pageNum-1].pageHeight;
+        $("#viewport").width(width);
+        $("#viewport").height(height);
+        $("#main").show(800);
+		// reader is no longer empty
+		reader.empty = false ;
+		// update page id
+		// zoom
+		zoomFactor = reader.zoomFactor ;
+		reader.zoomFactor = 1.0 ;
+		zoom(zoomFactor) ;
+	}, "json") ;
 	// selected area
 	$selectingBox= $('<div id="selected_area" style="border:1px #000088 dashed; position:absolute; width:0; height:0;"></div>') ;
 	$("#viewport").append($selectingBox) ;
@@ -115,6 +134,7 @@ $(document).ready(function(){
 		$("#viewport").mousemove(localOriginPos, function(e) {
             if (reader.empty)
                 return;
+            $(this).css("cursor", "default");
 			var localNowPos = localPos($(this), e.pageX, e.pageY) ;
 			var localOriginPos = e.data ;
 			var $selectingBox = reader.selectingBox ;
@@ -134,7 +154,8 @@ $(document).ready(function(){
 	$("#viewport").mouseup(function(e) {
         if (reader.empty)
             return;
-
+            
+		$(this).css("cursor", "text");
 		$(this).unbind("mousemove");
 		var $selectingBox = reader.selectingBox ;
 		$selectingBox.width(0);
@@ -166,25 +187,7 @@ function loadPage(docId, pageNum) {
     // load pdf image
     $("#viewport-background").attr("src", 
     		"/api/pdf_img.php?doc_id="+docId+"&page_num="+pageNum);
-    // load pdf data
-	$.get("/api/pdf_data.php", {doc_id: docId, page_num:pageNum}, function(data) {		
-        reader.data = data;
-        var block = reader.data.pages[0].blocks;
-        // now the viewport is empty
-	    reader.empty = true;
-		var width = data.pages[reader.pageNum-1].pageWidth;
-        var height = data.pages[reader.pageNum-1].pageHeight;
-        $("#viewport").width(width);
-        $("#viewport").height(height);
-        $("#main").show(800);
-		// reader is no longer empty
-		reader.empty = false ;
-		// update page id
-		// zoom
-		zoomFactor = reader.zoomFactor ;
-		reader.zoomFactor = 1.0 ;
-		zoom(zoomFactor) ;
-	}, "json") ;
+    $("#main").show(800);
 }
 
 function addEventHandlerToControls() {
@@ -220,14 +223,16 @@ function addEventHandlerToControls() {
 		reader.zoomMode = "fit-width" ;
 	}) ;
 	$('#next-page').click(function() {
-		if( ($(this).attr("id") == "next-page" && reader.pageId + 1 == reader.pageNum) )	// no next page
+		if( ($(this).attr("id") == "next-page" && reader.pageNum  == reader.pages) )	// no next page
 			return ;
-		loadPage(reader.docId, reader.pageId + 1) ;
+		$(".selected-area").remove();
+		loadPage(reader.docId, reader.pageNum + 1) ;
 	}) ;
 	$('#pre-page').click(function() {
-		if( ($(this).attr("id") == "pre-page" && reader.pageId == 0)	) // no previous page
+		if( ($(this).attr("id") == "pre-page" && reader.pageNum == 1)	) // no previous page
 			return ;
-		loadPage(reader.docId, reader.pageId - 1) ;
+		$(".selected-area").remove();
+		loadPage(reader.docId, reader.pageNum - 1) ;
 	}) ;
 }
 

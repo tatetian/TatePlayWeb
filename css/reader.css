@@ -69,6 +69,7 @@ body {
 	position: absolute ;
 	text-align: left;
 	font-size: 10px ;
+        cursor: text;
 }
 #viewport-backgournd {
 	width: 100%;
@@ -77,6 +78,6 @@ body {
 .selected-area {
     position: absolute;
     background-color: 000088;
-	opacity: 0.4;
-	filter: alpha(opacity=40) ;
+    opacity: 0.4;
+    filter: alpha(opacity=40) ;
 }
