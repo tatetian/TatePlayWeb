@@ -8,7 +8,19 @@
 <script type="text/javascript" src="js/jquery-1.5.min.js"></script>
 <script type="text/javascript" src="js/reader.js"></script>  
 </head> 
-<body> 
+<body>
+<!-- 
+This workaround enables Ctrl+C to copy the selected text.
+The input box always maintain the same content as the selected text.
+When the user press Ctrl, the input box get the focus and the text in it get selected. 
+Thus after the user press Ctrl+C, the selected text in the input box is copied to 
+system clipboard. Note that the input box is small and positioned with a large offset 
+so that it is invisible to the user.
+-->
+<input type="text" id="clipboard-box">
+<!--
+Control layer
+-->
 <div id="controls">
 	<div id="toolbar">
 		<ol>
@@ -16,11 +28,14 @@
 			<li id="zoom-out" class="control"></li>
 			<li id="zoom-fit-width" class="control"></li>
 			<li id="zoom-fit-height" class="control"></li>
-		</ol>
+        </ol>
 	</div>
 	<div id="next-page" class="control"></div>
-	<div id="pre-page" class="control"></div>
+    <div id="pre-page" class="control"></div>
 </div>
+<!--
+Viewport
+-->
 <div id="main">
 	<!--
 	<embed id="pdf-image" type="image/svg+xml">

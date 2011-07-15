@@ -1,4 +1,4 @@
-  /*
+/*
  * JsonOutputDev.cpp
  *
  *  Created on: Mar 15, 2011
@@ -11,13 +11,7 @@
 #include "GfxFont.h"
 #include "UTF8.h"
 
-#define double2Int(x) ((int)(x + 0.5))
-#ifndef max
-#define max(a,b) ( ((a)>(b))?(a):(b) )
-#endif
-#ifndef min
-#define min(a,b) ( ((a)<(b))?(a):(b) )
-#endif
+#define doubleEqual(x, y) ( fabs(x-y) < 0.01 )
 
 void escapeJsonString(GooString* str) {
   for(int i = 0; i < str->getLength(); ++i) {
@@ -30,12 +24,13 @@ void escapeJsonString(GooString* str) {
     }
   }
 }
+
 ExtractedString::ExtractedString(GfxState *state, double fontSize)
-  :unicodes(NULL),
-   size(0), capacity(1),
-   yxNext(NULL),
+  :RectArea(),
+   unicodes(NULL),
+   size(0), capacity(1),//TO-DO: figure out why malloc fails when capacity is initialized as 8
+   nextStr(NULL),
    x(0), y(0),
-   xMin(0), xMax(0), yMin(0), yMax(0),
    charAvgSpace(0),charAvgWidth(0)
 {
   GfxFont *font = state->getFont();
@@ -59,14 +54,11 @@ ExtractedString::ExtractedString(GfxState *state, double fontSize)
 }
 
 ExtractedString::ExtractedString(const ExtractedString& another)
-  :unicodes(NULL),
+  :RectArea(another),
+   unicodes(NULL),
    size(another.size), capacity(another.capacity),
-   yxNext(NULL),
+   nextStr(NULL),
    x(another.x), y(another.y),
-   xMin(another.xMin),
-   xMax(another.xMax),
-   yMin(another.yMin),
-   yMax(another.yMax),
    charAvgSpace(another.charAvgSpace),
    charAvgWidth(another.charAvgWidth)
 {
@@ -98,6 +90,8 @@ void ExtractedString::addChar(GfxState *state, double x, double y,
   xMax = x + dx;
   charAvgWidth += dx;
   ++size ;
+
+  init = true;
 }
 
 GooString* ExtractedString::toString() const
@@ -133,14 +127,6 @@ void ExtractedString::append(const ExtractedString& another)
   capacity = newSize + 16;
 
   updateBox(another);
-}
-
-void ExtractedString::updateBox(const ExtractedString& str)
-{
-  xMin = min(xMin, str.getXMin());
-  xMax = max(xMax, str.getXMax());
-  yMin = min(yMin, str.getYMin());
-  yMax = max(yMax, str.getYMax());
 }
 
 ExtractedBlock::ExtractedBlock()
@@ -184,26 +170,35 @@ void ExtractedBlock::mergeLastStr(const ExtractedString& str)
   updateBox(str);
 }
 
-void ExtractedBlock::updateBox(const ExtractedString& str)
+ExtractedParagraph::ExtractedParagraph()
+  : blocks(NULL),
+    curBlock(NULL),
+    size(0),
+    nextPara(NULL)
 {
-  if(size) {
-    xMin = min(xMin, str.getXMin());
-    xMax = max(xMax, str.getXMax());
-    yMin = min(yMin, str.getYMin());
-    yMax = max(yMax, str.getYMax());
+}
+
+ExtractedParagraph::~ExtractedParagraph()
+{
+}
+
+void ExtractedParagraph::addBlock(ExtractedBlock* block)
+{
+  if (curBlock) {
+    curBlock->setNextBlock(block);
+    curBlock = block;
   }
   else {
-    xMin = str.getXMin();
-    xMax = str.getXMax();
-    yMin = str.getYMin();
-    yMax = str.getYMax();
+    blocks = curBlock = block;
   }
+  curBlock->setNextBlock(NULL);
+  ++size;
 }
 
 JsonOutputDev::JsonOutputDev()
-  :newWord(gTrue), newBlock(gTrue),
-   curStr(NULL), yxStrings(NULL),yxCur1(NULL), yxCur2(NULL),
-   ok(gTrue)
+  :ok(gTrue), newWord(gTrue), newBlock(gTrue),
+   curStr(NULL), strings(NULL),lastStr(NULL), yxCur2(NULL),
+   blocks(NULL), paragraphs(NULL), asPlainText(gFalse)
 {
 }
 
@@ -228,8 +223,22 @@ void JsonOutputDev::endPage() {
   // each line is represented by ExtractedBlock
   // each word is represented by ExtractedString
   ExtractedBlock *curBlock = NULL, *tmpBlock = NULL;
-  bool newBlock = true, newString = true;
-  for(ExtractedString* curStr=yxStrings;curStr;curStr=curStr->yxNext){
+  ExtractedParagraph *curPara = NULL, *tmpPara = NULL;
+
+  bool newBlock = true, newString = true, newPara = true;
+  for(ExtractedString* curStr=strings;curStr;curStr=curStr->nextStr){
+    if (newPara) {
+      tmpPara = new ExtractedParagraph();
+      if(curPara) {
+        curPara->setNextPara(tmpPara);
+        curPara = tmpPara;
+      }
+      else
+        paragraphs = curPara = tmpPara;
+
+      curBlock = NULL;
+      newPara = false;
+    }
     if (newBlock) {
       tmpBlock = new ExtractedBlock();
       if(curBlock) {
@@ -239,35 +248,57 @@ void JsonOutputDev::endPage() {
       else
         blocks = curBlock = tmpBlock;
 
+      curPara->addBlock(curBlock);
       newBlock = false;
     }
     if (newString) {
-      GooString* tmp = curStr->toString();
-      //printf(" %s", tmp->getCString()) ;
-      delete tmp;
       curBlock->addString(*curStr);
       newString = false;
     }
     else {
-      GooString* tmp = curStr->toString();
-      //printf("%s", tmp->getCString()) ;
-      delete tmp;
       curBlock->mergeLastStr(*curStr);
     }
-    if (curStr->yxNext && curStr->yxNext->yMin==curStr->yMin) {
-      if(areTwoStringSeparate(curStr, curStr->yxNext))
+    curPara->updateBox(*curBlock);
+    if (curStr->nextStr &&
+        doubleEqual(curStr->getY(), curStr->nextStr->getY())) {
+      if(areTwoStringSeparate(curStr, curStr->nextStr))
         newString = true;
     }
     else {
+      if (curStr->nextStr &&
+          ( fabs(curStr->getY() - curStr->nextStr->getY()) > 2* curStr->getHeight() ||
+            fabs(curStr->getY() - curStr->nextStr->getY()) > 2* curStr->nextStr->getHeight() ))
+        newPara = true;
       newBlock = true;
       newString = true;
-//      printf("\n");
     }
   }
 
-  outputPageAsJSON();
+  if (asPlainText)
+    outputPageAsPlainText();
+  else
+    outputPageAsJSON();
 
   clear();
+}
+
+void JsonOutputDev::outputPageAsPlainText()
+{
+  GooString* tmpStr;
+
+  for(ExtractedParagraph* p=paragraphs; p; p=p->getNextPara()) {
+    for(ExtractedBlock* b=p->getBlocks(); b; b=b->getNextBlock()) {
+      for(ExtractedString *curStr=b->toArray(); curStr; curStr=curStr->getNext()) {
+        tmpStr = curStr->toString();
+        printf("%s", tmpStr->getCString());
+        delete tmpStr;
+        if(curStr->getNext())
+          printf(" ");
+      }
+      printf("\n");
+    }
+    printf("\n");
+  }
 }
 
 void JsonOutputDev::outputPageAsJSON()
@@ -276,50 +307,58 @@ void JsonOutputDev::outputPageAsJSON()
   double xi, dxi;
   GooString* tmpStr;
 
-  printf("\t{");
-  printf("\"pageNum\":%d, \"pageWidth\":%d, \"pageHeight\":%d,\n",
+  printf("\t{\"pageNum\":%d, \"pageWidth\":%d, \"pageHeight\":%d,\n",
       pageNum, pageWidth, pageHeight);
-  printf("\t\"blocks\":[\n");
-  for(ExtractedBlock* b=blocks; b; b=b->getNextBlock()) {
-    b->getPosition(&x, &y);
-    b->getBoxSize(&w, &h);
-    printf("\t\t{");
-    printf("\"l\":%d, \"t\":%d, \"r\":%d, \"b\":%d,\n",
+  printf("\t \"blocks\":[\n");
+  for(ExtractedParagraph* p=paragraphs; p; p=p->getNextPara()) {
+    p->getPosition(&x, &y);
+    p->getBoxSize(&w, &h);
+    printf("\t\t{\"l\":%d, \"t\":%d, \"r\":%d, \"b\":%d,\n",
         double2Int(x), double2Int(y), double2Int(x+w), double2Int(y+h));
-    printf("\t\t\"q\":[");
-    for(ExtractedString *curStr=b->toArray(); curStr; curStr=curStr->getNext()) {
-      xi = curStr->getXMin();
-      dxi = curStr->getXMax() - xi;
-      printf("%d, %d", double2Int(xi), double2Int(dxi));
-      if(curStr->getNext())
-        printf(", ");
+    printf("\t\t \"lines\":[\n");
+    for(ExtractedBlock* b=p->getBlocks(); b; b=b->getNextBlock()) {
+      b->getPosition(&x, &y);
+      b->getBoxSize(&w, &h);
+      printf("\t\t\t{\"l\":%d, \"t\":%d, \"r\":%d, \"b\":%d,\n",
+          double2Int(x), double2Int(y), double2Int(x+w), double2Int(y+h));
+      printf("\t\t\t\"q\":[");
+      for(ExtractedString *curStr=b->toArray(); curStr; curStr=curStr->getNext()) {
+        xi = curStr->getXMin();
+        dxi = curStr->getXMax() - xi;
+        printf("%d, %d", double2Int(xi), double2Int(dxi));
+        if(curStr->getNext())
+          printf(", ");
+      }
+      printf("],\n");
+      printf("\t\t\t\"s\":[");
+      for(ExtractedString *curStr=b->toArray(); curStr; curStr=curStr->getNext()) {
+        tmpStr = curStr->toString();
+        escapeJsonString(tmpStr);
+        printf("\"%s\"", tmpStr->getCString());
+        delete tmpStr;
+        if(curStr->getNext())
+          printf(", ");
+      }
+      printf("]");
+      // debug
+      printf(",\n");
+      printf("\t\t\t\"ss\":\"");
+      for(ExtractedString *curStr=b->toArray(); curStr; curStr=curStr->getNext()) {
+        tmpStr = curStr->toString();
+        escapeJsonString(tmpStr);
+        printf("%s", tmpStr->getCString());
+        delete tmpStr;
+        if(curStr->getNext())
+          printf(" ");
+      }
+      printf("\"}");
+      if(b->getNextBlock()) {
+        printf(",\n");
+      }
     }
-    printf("],\n");
-    printf("\t\t\"s\":[");
-    for(ExtractedString *curStr=b->toArray(); curStr; curStr=curStr->getNext()) {
-      tmpStr = curStr->toString();
-      escapeJsonString(tmpStr);
-      printf("\"%s\"", tmpStr->getCString());
-      delete tmpStr;
-      if(curStr->getNext())
-        printf(", ");
-    }
-    printf("]");
-    // debug
-    printf(",\n");
-    printf("\t\t\"ss\":\"");
-        for(ExtractedString *curStr=b->toArray(); curStr; curStr=curStr->getNext()) {
-          tmpStr = curStr->toString();
-          escapeJsonString(tmpStr);
-          printf("%s", tmpStr->getCString());
-          delete tmpStr;
-          if(curStr->getNext())
-            printf(" ");
-        }
-    printf("\"}");
-    if(b->getNextBlock())
-      printf(",");
-    printf("\n");
+    printf("]}");
+    if(p->getNextPara())
+      printf(",\n");
   }
   printf("\t]}");
 }
@@ -329,16 +368,21 @@ bool JsonOutputDev::areTwoStringSeparate(
     ExtractedString* right)
 {
   double space = right->xMin - left->xMax;
-  if ((left->charAvgSpace && space < 1.2*left->charAvgSpace) ||
-      (right->charAvgSpace && space < 1.2*right->charAvgSpace) ||
-      (space < 0.3*(left->charAvgWidth)) ||
-      (space < 0.3*(right->charAvgWidth)) ) {
+//  if ((left->charAvgSpace && space < 1.2*left->charAvgSpace) ||
+//      (right->charAvgSpace && space < 1.2*right->charAvgSpace) ||
+//      (space < 0.3*(left->charAvgWidth)) ||
+//      (space < 0.3*(right->charAvgWidth)) ) {
+//    return false;
+//  }
+  if ( (space < 0.3 * left->charAvgWidth) ||
+       (space < 0.3 * right->charAvgWidth) ) {
     return false;
   }
   else {
     return true;
   }
 }
+
 void JsonOutputDev::clear() {
   ExtractedString *p1, *p2;
   ExtractedBlock *b1, *b2;
@@ -347,12 +391,12 @@ void JsonOutputDev::clear() {
     delete curStr;
     curStr = NULL;
   }
-  for (p1 = yxStrings; p1; p1 = p2) {
-    p2 = p1->yxNext;
+  for (p1 = strings; p1; p1 = p2) {
+    p2 = p1->nextStr;
     delete p1;
   }
-  yxStrings = NULL;
-  yxCur1 = yxCur2 = NULL;
+  strings = NULL;
+  lastStr = yxCur2 = NULL;
 
   for (b1 = blocks; b1; b1 = b2) {
     b2 = b1->getNextBlock();
@@ -407,9 +451,6 @@ void JsonOutputDev::beginString(GfxState *state, GooString *s) {
 }
 
 void JsonOutputDev::endString(GfxState *state) {
-  ExtractedString *p1=NULL, *p2=NULL;
-  double h, y1, y2;
-
 //  printf("\tendString\n");
 
   if (curStr->getSize() == 0) {
@@ -420,33 +461,17 @@ void JsonOutputDev::endString(GfxState *state) {
 
   curStr->endString();
 
-  // insert string in y-major list
-  h = curStr->yMax - curStr->yMin;
-  y1 = curStr->yMin + 0.5 * h;
-  y2 = curStr->yMin + 0.8 * h;
-  if ((!yxCur1 || (y1 >= yxCur1->yMin && (y2 >= yxCur1->yMax
-      || curStr->xMax >= yxCur1->xMin))) && (!yxCur2 || (y1 < yxCur2->yMin
-      || (y2 < yxCur2->yMax && curStr->xMax < yxCur2->xMin))))
-  {
-    p1 = yxCur1;
-    p2 = yxCur2;
+  GooString* tmp = curStr->toString();
+  delete tmp;
+
+  if (!strings) {
+    strings = lastStr = curStr;
   }
-  else
-  {
-    for (p1 = NULL, p2 = yxStrings; p2; p1 = p2, p2 = p2->yxNext)
-    {
-      if (y1 < p2->yMin || (y2 < p2->yMax && curStr->xMax < p2->xMin))
-        break;
-    }
-    yxCur2 = p2;
+  else {
+    lastStr->nextStr = curStr;
+    lastStr = curStr;
+    curStr = NULL;
   }
-  yxCur1 = curStr;
-  if (p1)
-    p1->yxNext = curStr;
-  else
-    yxStrings = curStr;
-  curStr->yxNext = p2;
-  curStr = NULL;
 }
 
 void JsonOutputDev::drawChar(GfxState *state, double x, double y,
@@ -467,8 +492,12 @@ void JsonOutputDev::drawChar(GfxState *state, double x, double y,
   // begin a new string if
   // 1) not on the same line
   // TODO: what about too far away?
-  if (curStr->y != y1)
+  if (!doubleEqual(curStr->y, y1)){
+    fprintf(stderr, "Warning: we have to begin a new string for the new character is not the same line.");
+
+    endString(state);
     beginString(state, NULL) ;
+  }
 
   // TODO: have a better understanding of the following lines
   state->textTransformDelta(state->getCharSpace() * state->getHorizScaling(),

@@ -409,7 +409,7 @@ void HtmlPage::coalesce() {
   double curX, curY;
 
 #if 0 //~ for debugging
-  for (str1 = yxStrings; str1; str1 = str1->yxNext) {
+  for (str1 = strings; str1; str1 = str1->nextStr) {
     printf("x=%f..%f  y=%f..%f  size=%2d '",
 	   str1->xMin, str1->xMax, str1->yMin, str1->yMax,
 	   (int)(str1->yMax - str1->yMin));
@@ -622,7 +622,7 @@ void HtmlPage::coalesce() {
   CloseTags( str1->htext, finish_a, finish_italic, finish_bold );
 
 #if 0 //~ for debugging
-  for (str1 = yxStrings; str1; str1 = str1->yxNext) {
+  for (str1 = strings; str1; str1 = str1->nextStr) {
     printf("x=%3d..%3d  y=%3d..%3d  size=%2d ",
 	   (int)str1->xMin, (int)str1->xMax, (int)str1->yMin, (int)str1->yMax,
 	   (int)(str1->yMax - str1->yMin));

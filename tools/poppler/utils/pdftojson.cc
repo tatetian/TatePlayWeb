@@ -32,8 +32,10 @@ char argOwnerPassword[33] = "";
 char argUserPassword[33] = "";
 int argFirstPage = 1;
 int argLastPage = INT_MAX;
+GBool argPlainText = gFalse;
 const ArgDesc argDesc[] =
 {
+  {"-p", argFlag, &argPlainText, 0, "output as plain text instead of JSON"},
   {"-f",      argInt,      &argFirstPage,     0,
     "first page to process"},
   {"-l",      argInt,      &argLastPage,      0,
@@ -196,23 +198,39 @@ int main(int argc, char *argv[])
           firstPage,
           doc->getCatalog()->getOutline()->isDict());*/
   jsonOut = new JsonOutputDev() ;
+  jsonOut->setAsPlainText(argPlainText);
 
   if (jsonOut->isOk())
   {
-    escapeJsonString(docTitle);
-    if(author) escapeJsonString(author);
-    printf("{\"docId\":1, \"title\":\"%s\", \"author\":\"%s\",\n",
-        docTitle->getCString(), author? author->getCString():"");
-    printf("\"pages\":[\n");
+
+    if(argPlainText) {
+      printf("Title: %s\nAuthor: %s\n",
+          docTitle->getCString(),
+          author? author->getCString():"") ;
+    }
+    else {
+      escapeJsonString(docTitle);
+      if(author) escapeJsonString(author);
+      printf("{\"docId\":1, \"title\":\"%s\", \"author\":\"%s\",\n",
+              docTitle->getCString(), author? author->getCString():"");
+      printf("\"pages\":[\n");
+    }
+
     for(int i = argFirstPage; i <= argLastPage; ++i) {
+      if(argPlainText) {
+        printf("Page %d:\n", i);
+      }
       doc->displayPage(jsonOut, i, hDPI, vDPI,
           0, gTrue, gFalse, gFalse,
           NULL, NULL, NULL, NULL);
-      if(i != argLastPage)
-        printf(",");
-      printf("\n");
+      if(!argPlainText) {
+        if(i != argLastPage)
+          printf(",");
+          printf("\n");
+      }
     }
-    printf("]}") ;
+    if(!argPlainText)
+      printf("]}") ;
   }
 
   delete jsonOut;

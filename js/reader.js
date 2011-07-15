@@ -22,11 +22,55 @@ function localPos($container, pageX, pageY) {
 	return {x: pageX - originPageX, y: pageY - originPageY} ;
 }
 
+function selectWord(blocks, x, y) {
+    var position = findWord(blocks, x, y);
+    if (!position)
+        return;
+
+    var i = position.blockIndex, j = position.lineIndex, k = position.wordIndex;
+    var block = blocks[i];
+    var line = block.lines[j];
+    var q = line.q;
+    var l = q[2*k], r = l + q[2*k+1];
+
+    highlightArea({"l":l, "r":r, "t":line.t, "b":line.b});
+}
+
+function isPointInRect(x, y, rect) {
+    return rect.l <= x && x <= rect.r && 
+        rect.t < y && y <= rect.b;
+}
+
+function findWord(blocks, x, y) {
+    var block;
+    var line, lines;
+    var l, r;
+    var q;
+    for(var i = 0; i < blocks.length; ++i) {
+        block = blocks[i];
+        if ( isPointInRect(x, y, block) ) {
+            lines = block.lines;
+            for(var j = 0; j < lines.length; ++j) {
+                line = lines[j];
+                if ( isPointInRect(x, y, line) ) {
+                    q = line.q;
+                    for(var k = 0; k < q.length/2; ++k) {
+                        l = q[2*k]; r = l + q[2*k+1];
+                        if ( l <= x && x <= r ) {
+                            return {"blockIndex":i, "lineIndex":j, "wordIndex":k}; 
+                        }
+                    }
+                }
+            }
+            return null;//found nothing
+        }
+    }
+    return null;//found nothing 
+}
+
 function selectText(blocks, startX, startY, endX, endY, operationOnSelectedText) {
     var d = reader.selectingPrecision ; 
     var f = reader.zoomFactor;
-    var dx = $("#main").scrollLeft();
-    var dy = $("#main").scrollTop();
     // tranform the coordinates according to zoomFactor
     var left = ( ( startX < endX ? startX : endX )  )/  f ;
     var top = ( ( startY < endY ? startY : endY ) ) / f ;
@@ -36,7 +80,7 @@ function selectText(blocks, startX, startY, endX, endY, operationOnSelectedText)
     var block;
     for(var i = 0; i < blocks.length ; ++i) {
         block = blocks[i];
-        if (isBlockIntersected(block, left, top, right, bottom)) {
+        if (isBlockSelected(block, left, top, right, bottom)) {
             // if it is the first or last line, we want to select
             // more precisely
             var isFirstLine = block.t < top && top < block.b;
@@ -60,11 +104,13 @@ function selectText(blocks, startX, startY, endX, endY, operationOnSelectedText)
     }
 }
 
-function isBlockIntersected(block, left, top, right, bottom) {
+function isBlockSelected(block, left, top, right, bottom) {
+    var resizedTop = ( 2 * block.t + block.b ) / 3;
+    var resizedBottom = ( block.t + 2 * block.b ) / 3;
     if ( ( (left < block.l && block.l < right ) ||
            (left < block.r && block.r < right ) ) &&
-         ( (top < block.t && block.t < bottom ) ||
-           (top < block.b && block.b < bottom) ) )
+         ( (top < resizedTop && resizedTop < bottom ) ||
+           (top < resizedBottom && resizedBottom < bottom) ) )
          return true;
     return false;
 }
@@ -88,6 +134,10 @@ function copyText(block) {
  * init elements on load event  
  * */
 $(document).ready(function(){
+    var box = $("#clipboard-box");
+    box.attr("value", "not hi");
+    box.focus();
+    box.select();
 	// load the pdf
 	loadPage(reader.docId, reader.pageNum) ;
 	// load pdf data
@@ -126,21 +176,21 @@ $(document).ready(function(){
         $(".selected-area").remove();
 
 		var localOriginPos = localPos($(this), e.pageX, e.pageY) ;
-		var $selectingBox = reader.selectingBox ;
+		/*var $selectingBox = reader.selectingBox ;
 		$selectingBox.css("left", localOriginPos.x);
 		$selectingBox.css("top",localOriginPos.y);
-		$selectingBox.show();
+		$selectingBox.show();*/
 
 		$("#viewport").mousemove(localOriginPos, function(e) {
             if (reader.empty)
                 return;
-            $(this).css("cursor", "default");
 			var localNowPos = localPos($(this), e.pageX, e.pageY) ;
 			var localOriginPos = e.data ;
-			var $selectingBox = reader.selectingBox ;
+			/*var $selectingBox = reader.selectingBox ;
 			$selectingBox.width(localNowPos.x - localOriginPos.x);
 			$selectingBox.height(localNowPos.y - localOriginPos.y);
-
+            $(this).css("cursor", "default");
+            */
             //++ reader.selectingEventCount ;
             var now = new Date().getTime();
             if(now - reader.lastSelectionTime > 150) {
@@ -157,11 +207,20 @@ $(document).ready(function(){
             
 		$(this).css("cursor", "text");
 		$(this).unbind("mousemove");
-		var $selectingBox = reader.selectingBox ;
+		/*var $selectingBox = reader.selectingBox ;
 		$selectingBox.width(0);
 		$selectingBox.height(0);
-		$selectingBox.hide();
+		$selectingBox.hide();*/
 	}) ;
+    // double click to select a word
+    $('#viewport').dblclick(function(e) {
+        var localNowPos = localPos($(this), e.pageX, e.pageY);
+        var x = localNowPos.x;
+        var y = localNowPos.y;
+        $('#clipboard-box').attr("value", "("+x+","+y+")");   
+        var blocks = reader.data.pages[reader.pageNum-1].blocks;
+        selectWord(blocks, x, y );
+    }) ;
     var ctrlKey = 16, cKey = 67;
     // keyboard event
     $(document).keydown(function(e) {

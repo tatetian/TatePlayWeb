@@ -81,3 +81,8 @@ body {
     opacity: 0.4;
     filter: alpha(opacity=40) ;
 }
+#clipboard-box {
+    position: absolute;
+    width: 300px;
+    z-index: 10;
+}

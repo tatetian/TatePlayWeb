@@ -18,10 +18,59 @@
 #include "Catalog.h"
 #include "Page.h"
 #include "gtypes.h"
+#include <limits>
+
+#define double2Int(x) ((int)(x + 0.5))
+#ifndef max
+#define max(a,b) ( ((a)>(b))?(a):(b) )
+#endif
+#ifndef min
+#define min(a,b) ( ((a)<(b))?(a):(b) )
+#endif
 
 void escapeJsonString(GooString* str) ;
 
-class ExtractedString
+class RectArea {
+public:
+  RectArea()
+    :xMin(0), xMax(0),
+     yMin(0), yMax(0),
+     init(false)
+  {}
+  RectArea(const RectArea& another)
+    : xMin(another.xMin),
+      xMax(another.xMax),
+      yMin(another.yMin),
+      yMax(another.yMax),
+      init(another.init)
+  {}
+  virtual ~RectArea() {}
+  double getXMin() const {return xMin;}
+  double getXMax() const {return xMax;}
+  double getYMin() const {return yMin;}
+  double getYMax() const {return yMax;}
+
+  virtual void updateBox(const RectArea& area) {
+    if(init) {
+      xMin = min(xMin, area.getXMin());
+      xMax = max(xMax, area.getXMax());
+      yMin = min(yMin, area.getYMin());
+      yMax = max(yMax, area.getYMax());
+    }
+    else {
+      xMin = area.xMin;
+      xMax = area.xMax;
+      yMin = area.yMin;
+      yMax = area.yMax;
+      init = true;
+    }
+  }
+protected:
+  double xMin, xMax, yMin, yMax;
+  bool init;
+};
+
+class ExtractedString : public RectArea
 {
 public:
   ExtractedString(GfxState *state, double fontSize);
@@ -37,31 +86,24 @@ public:
   int getSize() const {return size;}
   double getX() const {return x;}
   double getY() const {return y;}
-  double getXMin() const {return xMin;}
-  double getXMax() const {return xMax;}
-  double getYMin() const {return yMin;}
-  double getYMax() const {return yMax;}
   double getCharAvgSpace() const {return charAvgSpace;}
   double getCharAvgWidth() const {return charAvgWidth;}
-  ExtractedString* getNext() {return yxNext;}
-  void setNext(ExtractedString* next) {yxNext=next;}
-  void updateBox(const ExtractedString& str);
+  double getHeight() const {return yMax-yMin;}
+  ExtractedString* getNext() {return nextStr;}
+  void setNext(ExtractedString* next) {nextStr=next;}
 private:
-  double x, y;
-  double yMin, yMax, xMin, xMax ;
-  double charAvgSpace;
-  double charAvgWidth;
-
   Unicode *unicodes;
   int size;
   int capacity;
-
-  ExtractedString* yxNext;
+  ExtractedString* nextStr;
+  double x, y;
+  double charAvgSpace;
+  double charAvgWidth;
 
   friend class JsonOutputDev;
 };
 
-class ExtractedBlock
+class ExtractedBlock : public RectArea
 {
 public:
   ExtractedBlock();
@@ -78,17 +120,34 @@ public:
 
   ExtractedString* toArray() {return strings;}
 private:
-  void updateBox(const ExtractedString& str);
-
-  int size;
-  double xMin, xMax, yMin, yMax;
-
   ExtractedString* strings;
-  ExtractedString* curStr;
-
   ExtractedBlock* nextBlock;
+  ExtractedString* curStr;
+  int size;
 } ;
 
+
+class ExtractedParagraph : public RectArea
+{
+public:
+  ExtractedParagraph();
+  ~ExtractedParagraph();
+
+  void addBlock(ExtractedBlock* block);
+  ExtractedBlock* getBlocks() const {return blocks;}
+  int getSize() const {return size;}
+  void setNextPara(ExtractedParagraph* next) {nextPara=next;}
+  ExtractedParagraph* getNextPara() const {return nextPara;}
+
+  void getPosition(double* x, double* y) {*x=xMin; *y=yMin;};
+  void getBoxSize(double* width, double* height) {*width=xMax-xMin;*height=yMax-yMin;};
+private:
+  ExtractedBlock* blocks;
+  ExtractedBlock* curBlock;
+  int size;
+
+  ExtractedParagraph* nextPara;
+} ;
 
 class JsonOutputDev : public OutputDev
 {
@@ -146,10 +205,15 @@ public:
                         double dx, double dy,
                         double originX, double originY,
                         CharCode code, int nBytes, Unicode *u, int uLen);
+
+  void setAsPlainText(GBool b) {
+    asPlainText = b;
+  }
 private:
   void clear();
   bool areTwoStringSeparate(ExtractedString* left,
                             ExtractedString* right);
+  void outputPageAsPlainText();
   void outputPageAsJSON();
 
   GBool ok;                    // set up ok?
@@ -167,9 +231,12 @@ private:
   GBool newBlock ;
 
   ExtractedString *curStr;
-  ExtractedString *yxStrings, *yxCur1, *yxCur2;
+  ExtractedString *strings, *lastStr, *yxCur2;
 
   ExtractedBlock *blocks;
+  ExtractedParagraph *paragraphs;
+
+  GBool asPlainText ;
 };
 
 #endif /* JSONOUTPUTDEV_H_ */
