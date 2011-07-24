@@ -12,6 +12,7 @@ var reader = {
     selectedArea: undefined,
     selectingEventCount: 0,
 	selectingPrecision: 6,	// text selection precision
+    selectedText: undefined,
     lastSelectionTime: new Date().getTime(),
     data: undefined
 } ;
@@ -34,6 +35,8 @@ function selectWord(blocks, x, y) {
     var l = q[2*k], r = l + q[2*k+1];
 
     highlightArea({"l":l, "r":r, "t":line.t, "b":line.b});
+
+    reader.selectedText = line.s[k]; 
 }
 
 function isPointInRect(x, y, rect) {
@@ -68,6 +71,53 @@ function findWord(blocks, x, y) {
     return null;//found nothing 
 }
 
+function highlightAndCopy(blocks, startPosition, endPosition)
+{
+    var i1 = startPosition.blockIndex;
+    var j1 = startPosition.lineIndex;
+    var k1 = startPosition.wordIndex;
+    var i2 = endPosition.blockIndex;
+    var j2 = endPosition.lineIndex;
+    var k2 = endPosition.wordIndex;
+
+    var block, lines, line;
+    var p, q, l, r;
+    var kk1, kk2;
+    
+    var text = "";
+    for(var i = i1; i <= i2; ++i)
+    {
+        if (i != i1)
+            text += "\n\n";
+
+        block = blocks[i];
+        lines = block.lines;
+        for(var j = (i == i1? j1 : 0) ; 
+            j < (i == i2? j2 + 1: lines.length); ++j)
+        {
+            if (j != (i ==i1? j1 : 0))
+                text += '\n';
+
+            line = lines[j];i
+            q = line.q;
+            if (q.length < 2)
+                continue;
+            kk1 = (i == i1 && j == j1? k1 : 0);
+            kk2 = (i == i2 && j == j2? k2 : q.length / 2 - 1);
+            l = q[2 * kk1];
+            p = 2 * kk2;
+            r = q[p] + q[p + 1];
+            highlightArea({"l":l, "r":r, "t":line.t, "b":line.b});
+            for(var k = kk1; k <= kk2; ++k) {
+                if (k != kk1)
+                    text += " ";
+                text += line.s[k];
+            }
+        }
+    }
+    reader.selectedText = text;
+}
+
 function selectText(blocks, startX, startY, endX, endY, operationOnSelectedText) {
     var d = reader.selectingPrecision ; 
     var f = reader.zoomFactor;
@@ -77,31 +127,95 @@ function selectText(blocks, startX, startY, endX, endY, operationOnSelectedText)
     var right = ( ( startX > endX ? startX : endX ) ) / f ;
     var bottom = ( ( startY > endY ? startY : endY ) )/ f ;
 
+    startPosition = findWordRightAfter(blocks, left, top);
+    endPosition = findWordRightBefore(blocks, right, bottom);
+
+    if (startPosition == null || endPosition == null)
+        return;
+
+    highlightAndCopy(blocks, startPosition, endPosition);
+}
+
+function findWordRightAfter(blocks, left, top)
+{
     var block;
-    for(var i = 0; i < blocks.length ; ++i) {
+    var line, lines;
+    var l, r;
+    var q;
+    for(var i = 0; i < blocks.length; ++i) {
         block = blocks[i];
-        if (isBlockSelected(block, left, top, right, bottom)) {
-            // if it is the first or last line, we want to select
-            // more precisely
-            var isFirstLine = block.t < top && top < block.b;
-            var isLastLine = block.t < bottom && bottom < block.b;
-            if(isFirstLine || isLastLine){
-                var s = block.s;
-                var q = block.q;
-                var l, r;
-                for (var j = 0; j < q.length; ++j) {
-                    l = q[2*j];
-                    r = l + q[2*j+1];
-                    if ( (isFirstLine && (left < r)) || (isLastLine && (l < right )) ) {
-                        operationOnSelectedText({"l":l, "r":r, "t":block.t, "b":block.b});
+        if ( left <= block.l && top <= block.t )
+            return {"blockIndex": i, "lineIndex": 0, "wordIndex": 0};
+        else if ( isPointInRect(left, top, block) ) {
+            lines = block.lines;
+            for(var j = 0; j < lines.length; ++j) {
+                line = lines[j];
+                if ( left <= line.l && top <= line.b )
+                    return {"blockIndex":i, "lineIndex":j, "wordIndex": 0};
+                else if ( isPointInRect(left, top, line) ) {
+                    q = line.q;
+                    for(var k = 0; k < q.length/2; ++k) {
+                        l = q[2*k]; r = l + q[2*k+1];
+                        if ( left <= r )
+                            return {"blockIndex":i, "lineIndex":j, "wordIndex":k}; 
                     }
-                } 
+                }
             }
-            else {  // otherwise, just select the whole line
-                operationOnSelectedText(block) ;
+        }
+        else if ( left <= block.l && block.t <= top && top <= block.b) {
+            lines = block.lines;
+            for(var j = 0; j < lines.length; ++j) {
+                line = lines[j];
+                if ( top <= line.b )
+                    return {"blockIndex":i, "lineIndex":j, "wordIndex": 0};
             }
         }
     }
+    return null;//found nothing 
+}
+
+function findWordRightBefore(blocks, right, bottom)
+{
+    var block;
+    var line, lines;
+    var l, r;
+    var q;
+    for(var i = blocks.length - 1; i >= 0; --i) {
+        block = blocks[i];
+        if ( right >= block.r && bottom >= block.b ) {
+            l = block.lines.length - 1;
+            line = block.lines[l];
+            return {"blockIndex": i, 
+                    "lineIndex": l, 
+                    "wordIndex": line.s.length - 1};
+        }
+        else if ( isPointInRect(right, bottom, block) ) {
+            lines = block.lines;
+            for(var j = lines.length - 1; j >= 0; --j) {
+                line = lines[j];
+                if ( right >= line.r && bottom >= line.t ) {
+                    return {"blockIndex":i, "lineIndex":j, "wordIndex": line.s.length-1};
+                }
+                else if ( isPointInRect(right, bottom, line) ) {
+                    q = line.q;
+                    for(var k = q.length/2 -1; k >= 0; --k) {
+                        l = q[2*k]; r = l + q[2*k+1];
+                        if ( right >= l )
+                            return {"blockIndex":i, "lineIndex":j, "wordIndex":k}; 
+                    }
+                }
+            }
+        }
+        else if ( right >= block.r && block.t <= bottom && bottom <= block.b ) {
+            lines = block.lines;
+            for(var j = lines.length - 1; j >= 0; --j) {
+                line = lines[j];
+                if ( line.t <= bottom ) 
+                    return {"blockIndex":i, "lineIndex":j, "wordIndex": line.s.length-1};
+            }
+        }
+    }
+    return null;//found nothing 
 }
 
 function isBlockSelected(block, left, top, right, bottom) {
@@ -127,17 +241,10 @@ function highlightArea(block) {
     $('#viewport').append($new_highlight_area);
 }
 
-function copyText(block) {
-}
-
 /*
  * init elements on load event  
  * */
 $(document).ready(function(){
-    var box = $("#clipboard-box");
-    box.attr("value", "not hi");
-    box.focus();
-    box.select();
 	// load the pdf
 	loadPage(reader.docId, reader.pageNum) ;
 	// load pdf data
@@ -217,20 +324,27 @@ $(document).ready(function(){
         var localNowPos = localPos($(this), e.pageX, e.pageY);
         var x = localNowPos.x;
         var y = localNowPos.y;
-        $('#clipboard-box').attr("value", "("+x+","+y+")");   
+        //$('#clipboard-box').attr("value", "("+x+","+y+")");   
         var blocks = reader.data.pages[reader.pageNum-1].blocks;
         selectWord(blocks, x, y );
     }) ;
-    var ctrlKey = 16, cKey = 67;
     // keyboard event
-    $(document).keydown(function(e) {
-        if (e.keyCode == ctrlKey) 
+    $(window).keydown(function(e) {
+        var ctrlKey = 17, cKey = 67;
+        if (e.keyCode == ctrlKey) { 
             reader.ctrlDown = true;
-        else if(reader.ctrlDown && e.keyCode == cKey) {//copy selected text
+            var $box = $('#clipboard-box');
+            $box.focus();
+            $box.attr('value', reader.selectedText);
+            $box.select();
+        }
+        if(reader.ctrlDown && e.keyCode == cKey) {//copy selected text
             
         }
     }).keyup(function(e) {
+        var ctrlKey = 17;
         if (e.keyCode == ctrlKey) reader.ctrlDown = false;
+        $(window).focus();
     }) ;
 }) ;
 

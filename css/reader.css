@@ -84,5 +84,6 @@ body {
 #clipboard-box {
     position: absolute;
     width: 300px;
+    height: 24px;
     z-index: 10;
 }
