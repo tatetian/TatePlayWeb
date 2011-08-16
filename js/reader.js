@@ -253,6 +253,8 @@ $(document).ready(function(){
         var height = data.pages[reader.pageNum-1].pageHeight;
         $("#viewport").width(width);
         $("#viewport").height(height);
+        $("#viewport-layer").height(height+20);
+
         // reader is no longer empty
 		reader.empty = false ;
 		// update page id
@@ -272,7 +274,7 @@ $(document).ready(function(){
 	// handle window resize event
 	$(window).resize(onWindowResize) ;
     // disable image dragging
-	$("#viewport-background").mousedown(function(e){if(e.preventDefault)e.preventDefault();});
+	$("#page-image").mousedown(function(e){if(e.preventDefault)e.preventDefault();});
 	// text selecting event
 	$("#viewport").mousedown(function(e) {
         if (reader.empty)
@@ -353,11 +355,11 @@ function loadPage(docId, pageNum) {
         $('#viewport').hide();
 	}
     // clear up
-	$('#viewport-background').attr("src","") ;
+	$('#page-image').attr("src","") ;
 
     reader.pageNum = pageNum;    
     // load pdf image
-    $("#viewport-background").attr("src", 
+    $("#page-image").attr("src", 
     		"/api/pdf_img.php?doc_id="+docId+"&page_num="+pageNum);
     //$("#main").show(800);
     $('#viewport').show(800);
