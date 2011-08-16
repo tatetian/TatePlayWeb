@@ -329,7 +329,7 @@ $(document).ready(function(){
         selectWord(blocks, x, y );
     }) ;
     // keyboard event
-    $(window).keydown(function(e) {
+    $(document).keydown(function(e) {
         var ctrlKey = 17, cKey = 67;
         if (e.keyCode == ctrlKey) { 
             reader.ctrlDown = true;
@@ -339,12 +339,15 @@ $(document).ready(function(){
             $box.select();
         }
         if(reader.ctrlDown && e.keyCode == cKey) {//copy selected text
-            
+            // For IE
+            if (window.clipboardData) {
+                window.clipboardData.setData("Text", reader.selectedText);    
+            }
         }
     }).keyup(function(e) {
         var ctrlKey = 17;
         if (e.keyCode == ctrlKey) reader.ctrlDown = false;
-        $(window).focus();
+        $(document).focus();
     }) ;
 }) ;
 
