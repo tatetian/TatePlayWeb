@@ -1,7 +1,7 @@
 body {
 	text-align: center ;
-	background-color:#777777;
-	overflow: hidden;
+    background: transparent url(/images/noise.png) center center repeat;
+	background-color:#5E6165;
 }
 #toolbar {
 	height: 24px;
@@ -56,7 +56,7 @@ body {
 }
 #main {
 	left: 0px;
-	top: 24px ;
+	top: 0px ;
 	bottom: 0px ;
 	width: 100%; 
 	height: 100% ;
@@ -64,6 +64,7 @@ body {
 	position: absolute ;
 	display: none;
     background-repeat:no-repeat;
+    z-index:100;
 }
 #viewport {
     left: 0px;
@@ -72,6 +73,7 @@ body {
 	text-align: left;
 	font-size: 10px ;
     cursor: text;
+    margin: 10px 0px 10px 0px;
 }
 #viewport-background {
     position: absolute;
@@ -79,7 +81,13 @@ body {
     top: 0px;
 	width: 100%;
 	height: 100%;
-    /* disable the default behaviour of browser */
+    border: black solid thin;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.597656) 0px 0px 2px 0px, rgba(0, 0, 0, 0.398438) 0px 0px 5px 0px;
+    -moz-box-shadow: rgba(0, 0, 0, 0.597656) 0px 0px 2px 0px, rgba(0, 0, 0, 0.398438) 0px 0px 5px 0px;
+    box-shadow: rgba(0, 0, 0, 0.597656) 0px 0px 2px 0px, rgba(0, 0, 0, 0.398438) 0px 0px 5px 0px;
+    /* Disable the default behaviour of browser 
+     * so that the image is not draggable.
+     * */
     -webkit-user-select: none; 
     -khtml-user-select: none;
     -moz-user-select: none;

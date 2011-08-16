@@ -274,8 +274,9 @@ $(document).ready(function(){
 	addEventHandlerToControls() ;
 	// handle window resize event
 	$(window).resize(onWindowResize) ;
+    // disable image dragging
+	$("#viewport-background").mousedown(function(e){if(e.preventDefault)e.preventDefault();});
 	// text selecting event
-	$("#viewport-background").mousedown(function(e){e.preventDefault();});
 	$("#viewport").mousedown(function(e) {
         if (reader.empty)
             return;
