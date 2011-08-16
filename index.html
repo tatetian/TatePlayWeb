@@ -19,9 +19,16 @@ so that it is invisible to the user.
 -->
 <textarea id="clipboard-box"></textarea>
 <!--
+Viewport
+-->
+<div id="viewport">
+    <!-- Set unselectable as on so that the image is not draggable in IE.-->
+    <img id="viewport-background" unselectable="on"/>
+</div>
+<!--
 Control layer
 -->
-<div id="controls">
+<div id="controls" style="display:none">
 	<div id="toolbar">
 		<ol>
 			<li id="zoom-in" class="control"></li>
@@ -33,13 +40,6 @@ Control layer
 	<div id="next-page" class="control"></div>
     <div id="pre-page" class="control"></div>
 </div>
-<!--
-Viewport
--->
-<div id="main">
-    <div id="viewport">
-        <!-- Set unselectable as on so that the image is not draggable in IE.-->
-        <img id="viewport-background" unselectable="on"/>
-    </div>
+
 </body> 
 </html> 

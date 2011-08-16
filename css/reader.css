@@ -74,6 +74,7 @@ body {
 	font-size: 10px ;
     cursor: text;
     margin: 10px 0px 10px 0px;
+    display: none;
 }
 #viewport-background {
     position: absolute;

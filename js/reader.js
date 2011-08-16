@@ -231,8 +231,6 @@ function isBlockSelected(block, left, top, right, bottom) {
 
 function highlightArea(block) {
     var f = reader.zoomFactor;
-    var dx = $("#main").scrollLeft();
-    var dy = $("#main").scrollTop();
     $new_highlight_area = $('<div class="selected-area"></div>');
     $new_highlight_area.css('left', block.l * f );
     $new_highlight_area.css('top', block.t * f );
@@ -245,9 +243,7 @@ function highlightArea(block) {
  * init elements on load event  
  * */
 $(document).ready(function(){
-	// load the pdf
-	loadPage(reader.docId, reader.pageNum) ;
-	// load pdf data
+    // load pdf data
 	$.get("/api/pdf_data.php", {}, function(data) {		
         reader.data = data;
         var block = reader.data.pages[0].blocks;
@@ -257,14 +253,15 @@ $(document).ready(function(){
         var height = data.pages[reader.pageNum-1].pageHeight;
         $("#viewport").width(width);
         $("#viewport").height(height);
-        $("#main").show(800);
-		// reader is no longer empty
+        // reader is no longer empty
 		reader.empty = false ;
 		// update page id
 		// zoom
 		zoomFactor = reader.zoomFactor ;
 		reader.zoomFactor = 1.0 ;
 		zoom(zoomFactor) ;
+        // load the pdf
+	    loadPage(reader.docId, 1) ;
 	}, "json") ;
 	// selected area
 	$selectingBox= $('<div id="selected_area" style="border:1px #000088 dashed; position:absolute; width:0; height:0;"></div>') ;
@@ -352,7 +349,8 @@ $(document).ready(function(){
 function loadPage(docId, pageNum) {
 	if(!reader.empty) {
 		// hide viewport
-		$("#main").hide();
+		//$("#main").hide();
+        $('#viewport').hide();
 	}
     // clear up
 	$('#viewport-background').attr("src","") ;
@@ -361,7 +359,8 @@ function loadPage(docId, pageNum) {
     // load pdf image
     $("#viewport-background").attr("src", 
     		"/api/pdf_img.php?doc_id="+docId+"&page_num="+pageNum);
-    $("#main").show(800);
+    //$("#main").show(800);
+    $('#viewport').show(800);
 }
 
 function addEventHandlerToControls() {
