@@ -1,7 +1,6 @@
 <html> 
 <head> 
 <title>Cool PDF Reader</title> 
- 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
 <link href="css/reset.css" rel="stylesheet" media="all" />
 <link href="css/reader.css" rel="stylesheet" media="all" />
@@ -9,42 +8,35 @@
 <script type="text/javascript" src="js/reader.js"></script>  
 </head> 
 <body>
-<!--
-Viewport
--->
-    <div id="viewport-layer">
-        <div id="viewport">
+<div id="top-panel">
+</div>   
+<div id="main-panel">
+    <div id="viewport">        
+        <div id="page" style="width:819px;height:1056px;">
             <!-- Set unselectable as on so that the image is not draggable in IE.-->
-            <img id="page-image" unselectable="on"/>
+            <img id="page-image" unselectable="on" src="/api/content/page-1.png"/>
         </div>
     </div>
-    <div id="invisible-layer">
-        <!-- 
-        This workaround enables Ctrl+C to copy the selected text.
-        The input box always maintain the same content as the selected text.
-        When the user press Ctrl, the input box get the focus and the text in it get selected. 
-        Thus after the user press Ctrl+C, the selected text in the input box is copied to 
-        system clipboard. Note that the input box is small and positioned with a large offset 
-        so that it is invisible to the user.
-
-        For IE, the system clipboard is directly manipulated.
-        -->
-        <textarea id="clipboard-box"></textarea>
+<div id="next-page">
     </div>
-<!--
-Control layer
--->
-<div id="controls" style="display:none">
-	<div id="toolbar">
-		<ol>
-			<li id="zoom-in" class="control"></li>
-			<li id="zoom-out" class="control"></li>
-			<li id="zoom-fit-width" class="control"></li>
-			<li id="zoom-fit-height" class="control"></li>
-        </ol>
-	</div>
-	<div id="next-page" class="control"></div>
-    <div id="pre-page" class="control"></div>
+    <div id="pre-page">
+    </div>
+
+</div>
+<div id="toolbar">
+</div>
+<div id="invisible-layer">
+    <!-- 
+    This workaround enables Ctrl+C to copy the selected text.
+    The input box always maintain the same content as the selected text.
+    When the user press Ctrl, the input box get the focus and the text in it get selected. 
+    Thus after the user press Ctrl+C, the selected text in the input box is copied to 
+    system clipboard. Note that the input box is small and positioned with a large offset 
+    so that it is invisible to the user.
+
+    For IE, the system clipboard is directly manipulated.
+    -->
+    <textarea id="clipboard-box"></textarea>
 </div>
 </body> 
 </html> 

@@ -1,15 +1,39 @@
 body {
-	text-align: center ;
+    overflow: hidden;
 }
-#viewport-layer {
-    position:absolute;
-    left: 0px;
-    top: 0px;
-    height: 100%;
+#top-panel {
+    height: 12px;
     width: 100%;
-    z-index: 0;
+    background-color: black;
+}
+#main-panel {
+    top: 12px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x: auto;
     background: transparent url(/images/noise.png) center center repeat;
-	background-color:#5E6165;
+	background-color: #555555/*#5E6165;*/
+}
+#toolbar {
+    position: fixed;
+    left: 0px;
+    bottom: 0px;
+    width: 29px;
+    height: 64px;
+    background-color: black;
+    opacity: 0.5;
+	filter: alpha(opacity=50) ;
+}
+#toolbar:hover {
+    width: 100%;
+    opacity: 0.8;
+	filter: alpha(opacity=80) ;
+}
+#viewport {
+    width: 100%;
+    height: 100%;
 }
 #invisible-layer {
     position: absolute;
@@ -19,10 +43,52 @@ body {
     height: 100%;
     z-index: -1;
 }
-#toolbar {
-	height: 24px;
+#page {
+    position: relative;
+    left: 0px;
+    top: 0px;
+    height: 100%;
+	text-align: left;
+	font-size: 10px ;
+    cursor: text;
+    margin: 0px auto 0px auto;
+    /*display: none;*/
+}
+#page-image {
+    left: 0px;
+    top: 0px;
 	width: 100%;
-	background-color: rgba(0,0,0,0.8);
+	height: 100%;
+    border: black solid thin;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.597656) 0px 0px 2px 0px, rgba(0, 0, 0, 0.398438) 0px 0px 5px 0px;
+    -moz-box-shadow: rgba(0, 0, 0, 0.597656) 0px 0px 2px 0px, rgba(0, 0, 0, 0.398438) 0px 0px 5px 0px;
+    box-shadow: rgba(0, 0, 0, 0.597656) 0px 0px 2px 0px, rgba(0, 0, 0, 0.398438) 0px 0px 5px 0px;
+    /* Disable the default behaviour of browser 
+     * so that the image is not draggable.
+     * */
+    -webkit-user-select: none; 
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+.selected-area {
+    position: absolute;
+    background-color: 000088;
+    opacity: 0.4;
+    filter: alpha(opacity=40) ;
+}
+#clipboard-box {
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    width: 300px;
+    height: 24px;
+    z-index: -1;
+}
+#controls {
+    position: absolute;
+    width: 100%;
 }
 #toolbar ol {
 	width: 200px;
@@ -54,73 +120,29 @@ body {
 	width: 24px;
 	height: 24px;
 	display: block ;
-	opacity: 0.5;
-	filter: alpha(opacity=50) ;
 	z-index: 10 ;
 }
+#next-page, #pre-page {
+    top: 50%;
+    margin-top: -22px;
+    width: 29px;
+    height: 44px;
+    position: absolute;
+    overflow: hidden;
+    z-index: 10;
+    opacity: 0.5;
+	filter: alpha(opacity=50) ;
+    cursor: pointer;
+}
 #next-page {
-	position:absolute;
-	right: 24px ;
-	top: 50% ;
-	background: url(/images/next-page.png);
+	right: 0px ;
+    background-image: url("/images/right-arrow.png");
 }
 #pre-page {
-	position:absolute;
-	left: 24px ;
-	top: 50% ;
-	background: url(/images/pre-page.png);
+	left: 0px ;
+    background-image: url("/images/left-arrow.png");
 }
-#main {
-	left: 0px;
-	top: 0px ;
-	bottom: 0px ;
-	width: 100%; 
-	height: 100% ;
-	overflow: auto ;
-	position: absolute ;
-    background-repeat:no-repeat;
-}
-#viewport {
-    left: 0px;
-    top: 0px;
-    height: 100%;
-	position: absolute ;
-	text-align: left;
-	font-size: 10px ;
-    cursor: text;
-    margin: 10px 0px 10px 0px;
-    display: none;
-}
-#page-image {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-	width: 100%;
-	height: 100%;
-    border: black solid thin;
-    -webkit-box-shadow: rgba(0, 0, 0, 0.597656) 0px 0px 2px 0px, rgba(0, 0, 0, 0.398438) 0px 0px 5px 0px;
-    -moz-box-shadow: rgba(0, 0, 0, 0.597656) 0px 0px 2px 0px, rgba(0, 0, 0, 0.398438) 0px 0px 5px 0px;
-    box-shadow: rgba(0, 0, 0, 0.597656) 0px 0px 2px 0px, rgba(0, 0, 0, 0.398438) 0px 0px 5px 0px;
-    /* Disable the default behaviour of browser 
-     * so that the image is not draggable.
-     * */
-    -webkit-user-select: none; 
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -o-user-select: none;
-    user-select: none;
-}
-.selected-area {
-    position: absolute;
-    background-color: 000088;
-    opacity: 0.4;
-    filter: alpha(opacity=40) ;
-}
-#clipboard-box {
-    position: absolute;
-    right: 0px;
-    bottom: 0px;
-    width: 300px;
-    height: 24px;
-    z-index: -1;
+#next-page:hover, #pre-page:hover {
+    opacity: 1.0;
+	filter: alpha(opacity=100) ;
 }

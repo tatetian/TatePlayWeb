@@ -1,6 +1,27 @@
-/*
- * global variable
- * */
+/**
+ * jQuery Scrollbar Width v1.0
+ * 
+ * Copyright 2011, Rasmus Schultz
+ * Licensed under LGPL v3.0
+ * http://www.gnu.org/licenses/lgpl-3.0.txt
+ */
+(function($){
+$.scrollbarWidth = function() {
+  if (!$._scrollbarWidth) {
+     var $body = $('body');
+    var w = $body.css('overflow', 'hidden').width();
+    $body.css('overflow','scroll');
+    w -= $body.width();
+    if (!w) w=$body.width()-$body[0].clientWidth; // IE in standards mode
+    $body.css('overflow','');
+    $._scrollbarWidth = w;
+  }
+  return $._scrollbarWidth;
+};
+})(jQuery);
+/**
+ * Reader
+ **/
 var reader = {
 	zoomFactor: 1.00,
 	zoomMode: 'normal',	// 3 possible values: normal, fit-width, fit-height
@@ -16,7 +37,6 @@ var reader = {
     lastSelectionTime: new Date().getTime(),
     data: undefined
 } ;
-
 function localPos($container, pageX, pageY) {
 	var originPageX = $container.offset().left ;
 	var originPageY = $container.offset().top ;
@@ -242,6 +262,7 @@ function highlightArea(block) {
 /*
  * init elements on load event  
  * */
+/*
 $(document).ready(function(){
     // load pdf data
 	$.get("/api/pdf_data.php", {}, function(data) {		
@@ -253,8 +274,7 @@ $(document).ready(function(){
         var height = data.pages[reader.pageNum-1].pageHeight;
         $("#viewport").width(width);
         $("#viewport").height(height);
-        $("#viewport-layer").height(height+20);
-
+        //$("#viewport-layer").height(height+20);
         // reader is no longer empty
 		reader.empty = false ;
 		// update page id
@@ -264,6 +284,8 @@ $(document).ready(function(){
 		zoom(zoomFactor) ;
         // load the pdf
 	    loadPage(reader.docId, 1) ;
+        //if($("#viewport-layer").height() > $("#main").height())
+        //   $("#next-page").css("right", $.scrollbarWidth());
 	}, "json") ;
 	// selected area
 	$selectingBox= $('<div id="selected_area" style="border:1px #000088 dashed; position:absolute; width:0; height:0;"></div>') ;
@@ -283,21 +305,12 @@ $(document).ready(function(){
         $(".selected-area").remove();
 
 		var localOriginPos = localPos($(this), e.pageX, e.pageY) ;
-		/*var $selectingBox = reader.selectingBox ;
-		$selectingBox.css("left", localOriginPos.x);
-		$selectingBox.css("top",localOriginPos.y);
-		$selectingBox.show();*/
 
-		$("#viewport").mousemove(localOriginPos, function(e) {
+        $("#viewport").mousemove(localOriginPos, function(e) {
             if (reader.empty)
                 return;
 			var localNowPos = localPos($(this), e.pageX, e.pageY) ;
 			var localOriginPos = e.data ;
-			/*var $selectingBox = reader.selectingBox ;
-			$selectingBox.width(localNowPos.x - localOriginPos.x);
-			$selectingBox.height(localNowPos.y - localOriginPos.y);
-            $(this).css("cursor", "default");
-            */
             //++ reader.selectingEventCount ;
             var now = new Date().getTime();
             if(now - reader.lastSelectionTime > 150) {
@@ -314,10 +327,6 @@ $(document).ready(function(){
             
 		$(this).css("cursor", "text");
 		$(this).unbind("mousemove");
-		/*var $selectingBox = reader.selectingBox ;
-		$selectingBox.width(0);
-		$selectingBox.height(0);
-		$selectingBox.hide();*/
 	}) ;
     // double click to select a word
     $('#viewport').dblclick(function(e) {
@@ -330,7 +339,7 @@ $(document).ready(function(){
     }) ;
     // keyboard event
     $(document).keydown(function(e) {
-        var ctrlKey = 17, cKey = 67;
+        var ctrlKey = 17, cKey = 67, pgUpKey = 33, pgDnKey = 34;
         if (e.keyCode == ctrlKey) { 
             reader.ctrlDown = true;
             var $box = $('#clipboard-box');
@@ -338,18 +347,32 @@ $(document).ready(function(){
             $box.attr('value', reader.selectedText);
             $box.select();
         }
-        if(reader.ctrlDown && e.keyCode == cKey) {//copy selected text
+        else if(reader.ctrlDown && e.keyCode == cKey) {//copy selected text
             // For IE
             if (window.clipboardData) {
                 window.clipboardData.setData("Text", reader.selectedText);    
             }
+        }
+        else if(e.keyCode == pgUpKey) {
+            scroll(-$("#main").height());
+            e.preventDefault();
+        }
+        else if(e.keyCode == pgDnKey) {
+            scroll($("#main").height());
+            e.preventDefault();
         }
     }).keyup(function(e) {
         var ctrlKey = 17;
         if (e.keyCode == ctrlKey) reader.ctrlDown = false;
         $(document).focus();
     }) ;
-}) ;
+}) ;*/
+
+function scroll(offset) {
+    var main =  $("#main");
+    var yPos = main.scrollTop();
+    main.scrollTop(yPos + offset);
+}
 
 function loadPage(docId, pageNum) {
 	if(!reader.empty) {
