@@ -20,7 +20,7 @@ $.scrollbarWidth = function() {
 };
 })(jQuery);
 /**
- * Reader
+ * Reader: global variable
  **/
 var reader = {
 	zoomFactor: 1.00,
@@ -37,6 +37,89 @@ var reader = {
     lastSelectionTime: new Date().getTime(),
     data: undefined
 } ;
+/**
+ * Preloader
+ *
+ * Load all images and data before showing the GUI of reader
+ * */
+var preloader = {
+    items: [], // format of item: {url:"", type:"img"/"ajax", callback:function}
+    doneNow: 0,
+    run: function() {
+        preloader.getImages();
+        preloader.getData();
+
+        preloader.loadItems();
+    },
+    getImages: function() {
+		var everything = $("body").find("*").each(function() {
+			var url = "";
+			if ($(this).css("background-image") != "none") {
+				var url = $(this).css("background-image");
+			} else if ($(this).is("img")) {
+				var url = $(this).attr("src");
+			}
+		    	
+			url = url.replace("url(\"", "");
+			url = url.replace("url(", "");
+			url = url.replace("\")", "");
+			url = url.replace(")", "");
+			
+			if (url.length > 0) {
+				preloader.items.push({
+                    "url": url, 
+                    "type": "img", 
+                    "callback": preloader.imgCallback
+                });
+			}
+		});
+	},
+    getData: function() {
+    },
+    loadItems: function() {
+        var items = preloader.items;
+        var length = items.length; 
+		
+		for (var i = 0; i < length; i++) {
+            if(items[i].type == "img") {
+                var imgLoad = $("<img></img>");
+                $(imgLoad).attr("src", items[i].url);
+                $(imgLoad).unbind("load");
+                $(imgLoad).bind("load", items[i].callback);
+                $(imgLoad).appendTo($("#items"));
+            }
+            else {
+            }
+		}
+    },
+    imgCallback: function() {
+		preloader.doneNow ++;
+		preloader.animateLoader();
+	},
+    animateLoader: function() {
+		var perc = 100 * preloader.doneNow / preloader.items.length ;
+		if (perc > 99) {
+			$("#loadbar").stop().animate({
+				width: perc + "%"
+			}, 500, "linear", preloader.doneLoad );
+		} else {
+			$("#loadbar").stop().animate({
+				width: perc + "%"
+			}, 500, "linear", function() { });
+		}
+	},
+    doneLoad: function() {
+        $("#preloader").animate({top: "100%"}, 1000, "swing");
+    }
+} ;
+/**
+ * Functions of reader
+ * */
+$(document).ready(function() {
+    // preload all the resources
+    preloader.run();
+});
+
 function localPos($container, pageX, pageY) {
 	var originPageX = $container.offset().left ;
 	var originPageY = $container.offset().top ;
