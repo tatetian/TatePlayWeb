@@ -1,4 +1,20 @@
 /**
+ * Entry point
+ * */
+$(document).ready(function() {
+    // Init the preloader
+    preloader.onDoneLoad = function() {
+        // After resource data loaded, init reader
+        reader.init(preloader.data);              
+    } ;
+    // Run the preloader
+    preloader.run();
+    // Add event handlers
+
+    // Etc
+    $("#next-page").css("right", $.scrollbarWidth()+"px");        
+});
+/**
  * jQuery Scrollbar Width v1.0
  * 
  * Copyright 2011, Rasmus Schultz
@@ -20,24 +36,6 @@ $.scrollbarWidth = function() {
 };
 })(jQuery);
 /**
- * Reader: global variable
- **/
-var reader = {
-	zoomFactor: 1.00,
-	zoomMode: 'normal',	// 3 possible values: normal, fit-width, fit-height
-	docId: 0,
-	pageNum: 1, // starting from 1, not 0
-	pages: 9,
-	empty: true,
-	selectingBox: undefined,
-    selectedArea: undefined,
-    selectingEventCount: 0,
-	selectingPrecision: 6,	// text selection precision
-    selectedText: undefined,
-    lastSelectionTime: new Date().getTime(),
-    data: undefined
-} ;
-/**
  * Preloader
  *
  * Load all images and data before showing the GUI of reader
@@ -45,13 +43,14 @@ var reader = {
 var preloader = {
     items: [], // format of item: {url:"", type:"img"/"ajax", callback:function}
     doneNow: 0,
+    data: undefined,
     run: function() {
-        preloader.getImages();
-        preloader.getData();
+        preloader.prepareImageItems();
+        preloader.prepareDataItems();
 
         preloader.loadItems();
     },
-    getImages: function() {
+    prepareImageItems: function() {
 		var everything = $("body").find("*").each(function() {
 			var url = "";
 			if ($(this).css("background-image") != "none") {
@@ -69,33 +68,45 @@ var preloader = {
 				preloader.items.push({
                     "url": url, 
                     "type": "img", 
-                    "callback": preloader.imgCallback
+                    "callback": preloader.defaultCallback
                 });
 			}
 		});
 	},
-    getData: function() {
+    prepareDataItems: function() {
+        preloader.items.push({
+            "url": "/api/pdf_data.php",
+            "type": "data",
+            "callback": preloader.dataCallback
+        });
     },
     loadItems: function() {
         var items = preloader.items;
-        var length = items.length; 
+        var length = items.length;
 		
 		for (var i = 0; i < length; i++) {
-            if(items[i].type == "img") {
+            var item = items[i];
+            if(item.type == "img") {
                 var imgLoad = $("<img></img>");
-                $(imgLoad).attr("src", items[i].url);
+                $(imgLoad).attr("src", item.url);
                 $(imgLoad).unbind("load");
-                $(imgLoad).bind("load", items[i].callback);
+                $(imgLoad).bind("load", item.callback);
                 $(imgLoad).appendTo($("#items"));
             }
-            else {
+            else if(item.type == "data"){
+                $.get(item.url, {}, item.callback, "json"); 
             }
 		}
     },
-    imgCallback: function() {
+    defaultCallback: function() {
 		preloader.doneNow ++;
 		preloader.animateLoader();
 	},
+    dataCallback: function(data) {
+        preloader.data = data;
+
+        preloader.defaultCallback();
+    },
     animateLoader: function() {
 		var perc = 100 * preloader.doneNow / preloader.items.length ;
 		if (perc > 99) {
@@ -109,17 +120,68 @@ var preloader = {
 		}
 	},
     doneLoad: function() {
-        $("#preloader").animate({top: "100%"}, 1000, "swing");
+        if(preloader.onDoneLoad)
+            preloader.onDoneLoad();
+
+        $("#preloader").animate({top: "100%"}, 1000, "swing", function() {
+            $("#preloader").remove();
+        });
+    },
+    onDoneLoad: undefined
+} ;
+/**
+ * Reader
+ **/
+var reader = {
+	zoomFactor: 1.00,
+	zoomMode: 'normal',	// 3 possible values: normal, fit-width, fit-height
+    currentPage: 1, // start from page 1 by default
+	/*selectingBox: undefined,
+    selectedArea: undefined,
+    selectingEventCount: 0,
+	selectingPrecision: 6,	// text selection precision
+    selectedText: undefined,
+    lastSelectionTime: new Date().getTime(),*/
+    totalWidth: undefined,
+    init: function(data) {
+        // Init variables
+        $.extend(reader, data);
+        // Spawn placeholder for pages
+        var pages = reader.pages;
+        var l = pages.length;
+        for (var i = 0; i < l; ++i) {
+            var li = $('<li><img class="page-image" unselectable="on" src="/api/content/page-'+(i+1)+'.png"/></li>');
+            li.appendTo($("#page-container"));
+        }
+        // Adjust the width of #page-container
+        var totalWidth = 0;
+        for (var i = 0; i < l; ++i)  
+            totalWidth += pages[i].pageWidth;
+        totalWidth += pages[l-1].pageWidth;
+        $("#page-container").width(totalWidth); 
+        // Add event listeners
+        $('#next-page').click(reader.nextPage);
+        $('#pre-page').click(reader.prePage);
+    },
+    nextPage: function() {
+        if( reader.currentPage  == reader.pages.length )	// no next page
+            return ;
+        var offset = - reader.currentPage * reader.pages[0].pageWidth;
+        $("#page-container").stop().animate({"marginLeft": offset});
+        reader.currentPage ++;
+    },
+    prePage: function() {
+        if( reader.currentPage  == 1 )	{// no pre page
+            return ;
+        }
+        var offset = - (reader.currentPage -2) * reader.pages[0].pageWidth;
+        $("#page-container").stop().animate({"marginLeft": offset}, 300, "swing");
+        reader.currentPage --;
     }
 } ;
 /**
- * Functions of reader
+ * Helper functions
  * */
-$(document).ready(function() {
-    // preload all the resources
-    preloader.run();
-});
-
 function localPos($container, pageX, pageY) {
 	var originPageX = $container.offset().left ;
 	var originPageY = $container.offset().top ;

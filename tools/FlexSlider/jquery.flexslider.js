@@ -329,7 +329,7 @@
   //FlexSlider: Default Settings
   $.flexslider.defaults = {
     animation: "fade",              //Select your animation type (fade/slide)
-    slideshow: true,                //Should the slider animate automatically by default? (true/false)
+    slideshow: false,                //Should the slider animate automatically by default? (true/false)
     slideshowSpeed: 7000,           //Set the speed of the slideshow cycling, in milliseconds
     animationDuration: 500,         //Set the speed of animations, in milliseconds
     directionNav: true,             //Create navigation for previous/next navigation? (true/false)
