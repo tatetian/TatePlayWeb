@@ -158,16 +158,23 @@ var reader = {
         for (var i = 0; i < l; ++i)  
             totalWidth += pages[i].pageWidth;
         totalWidth += pages[l-1].pageWidth;
-        $("#page-container").width(totalWidth); 
+        $("#page-container").width(totalWidth);
         // Add event listeners
+        reader.resize();
+        reader.addKeyboardEventHandler();
+        $(window).resize(reader.resize);
         $('#next-page').click(reader.nextPage);
         $('#pre-page').click(reader.prePage);
+    },
+    resize: function() {
+        $("#main-panel").height($(window).height()); 
     },
     nextPage: function() {
         if( reader.currentPage  == reader.pages.length )	// no next page
             return ;
         var offset = - reader.currentPage * reader.pages[0].pageWidth;
-        $("#page-container").stop().animate({"marginLeft": offset});
+        reader.scrollTo(0);
+        $("#page-container").stop().animate({"marginLeft": offset}, 300, "swing");
         reader.currentPage ++;
     },
     prePage: function() {
@@ -175,8 +182,51 @@ var reader = {
             return ;
         }
         var offset = - (reader.currentPage -2) * reader.pages[0].pageWidth;
+        reader.scrollTo(0);
         $("#page-container").stop().animate({"marginLeft": offset}, 300, "swing");
         reader.currentPage --;
+    },
+    scroll: function(offset) {
+        var offsetStr;
+        if(offset > 0)
+            offsetStr = "+=" + offset + "px";
+        else
+            offsetStr = "-=" + (-offset) + "px";
+        $("#main-panel").stop().animate({"scrollTop": offsetStr}, 300, "swing");
+    },
+    scrollTo: function(yPos) {
+        $("#main-panel").stop().animate({"scrollTop": yPos}, 300, "swing");
+    },
+    addKeyboardEventHandler: function() {
+        $(document).keydown(function(e) {
+            var ctrlKey = 17, cKey = 67, pgUpKey = 33, pgDnKey = 34;
+            var ltKey = 37, rtKey = 39, upKey = 38, dnKey = 40;
+            if(e.keyCode == pgUpKey) {
+                reader.scroll(-$("#main-panel").height());
+                e.preventDefault();
+            }
+            else if(e.keyCode == pgDnKey) {
+                reader.scroll($("#main-panel").height());
+                e.preventDefault();
+            }
+            else if(e.keyCode == ltKey) {
+                if ($("#page").width() < $("#main-panel").width()) {
+                    reader.prePage();
+                }
+            }
+            else if(e.keyCode == rtKey) {
+                if ($("#page").width() < $("#main-panel").width()) {
+                    reader.nextPage();
+                }
+            }
+            else if(e.keyCode == upKey) {
+                $("#main-panel").scrollTop($("#main-panel").scrollTop()-12);
+            }
+            else if(e.keyCode == dnKey) {
+                $("#main-panel").scrollTop($("#main-panel").scrollTop()+12);
+            }
+        }).keyup(function(e) {
+        }) ;
     }
 } ;
 /**

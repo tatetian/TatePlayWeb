@@ -1,0 +1,19 @@
+{
+   "background_page": "pages/background.html",
+   "content_scripts": [ {
+      "all_frames": true,
+      "js": [ "src/sscr.js", "src/middlemouse.js" ],
+      "matches": [ "http://*/*", "https://*/*", "ftp://*/*" ],
+      "run_at": "document_start"
+   } ],
+   "description": "Scrolls the websites smoothly when scrolling with the mouse wheel or the keyboard",
+   "icons": {
+      "128": "img/128n.png",
+      "16": "img/16n.png",
+      "32": "img/32n.png",
+      "48": "img/48n.png"
+   },
+   "name": "SmoothScroll",
+   "options_page": "pages/options.html",
+   "version": "1.0.1"
+}
