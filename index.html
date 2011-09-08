@@ -2,7 +2,6 @@
 <html> 
 <head> 
     <title>Cool PDF Reader</title> 
-    <meta http-equiv="X-UA-Compatible" content="IE=9" >
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
     <link href="css/reset.css" rel="stylesheet" media="all" />
     <link href="css/reader.css" rel="stylesheet" media="all" />
@@ -10,19 +9,15 @@
     <script type="text/javascript" src="js/reader.js"></script>  
 </head> 
 <body>
-<div id="top-panel" style="z-index:0;">
-</div>   
-<div id="main-panel" style="z-index:0;">
-    <div id="page" class="h_center">
-        <ul id="page-container">
-        </ul>
-    </div>
-    <div id="next-page" style="z-index:10;">
-    </div>
-    <div id="pre-page" style="z-index:10;">
-    </div>
+<div id="top-panel" style="z-index:10;"></div>
+<div id="viewport" class="h_center">
+    <ul id="page-container"></ul>
 </div>
 <div id="toolbar" style="z-index:20;">
+</div>
+<div id="next-page" style="z-index:10;">
+</div>
+<div id="pre-page" style="z-index:10;">
 </div>
 <div id="invisible-layer" style="z-index:-1;">
     <!-- 
@@ -42,7 +37,7 @@
     <div id="loadbar"></div>
     <div id="items" style="display:none;">
         <!-- preload the first page -->
-        <img src="/api/content/page-1.png"/>
+        <!-- <img src="/api/content/page-1.png"/>-->
     </div>
 </div>
 </body> 

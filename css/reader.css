@@ -1,18 +1,21 @@
 body {
-    overflow: hidden;
     background: transparent url(/images/noise.png) center center repeat;
 	background-color: #555555;
+    overflow: auto;
 }
 #top-panel {
+    position: fixed;
+    left: 0px;
+    top: 0px;
     height: 12px;
     width: 100%;
     background-color: black;
 }
 #main-panel {
-    top: 12px;
     left: 0px;
     width: 100%;
-    overflow-y: scroll;
+    padding-top: 12px;
+    overflow-y: ;
     overflow-x: auto;
     background: transparent url(/images/noise.png) center center repeat;
 	background-color: #555555/*#5E6165;*/
@@ -32,22 +35,17 @@ body {
     opacity: 0.8;
 	filter: alpha(opacity=80) ;
 }
-#viewport {
-    width: 100%;
-    height: 100%;
-}
 #invisible-layer {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    width: 100%;
-    height: 100%;
-}
-#page {
     position: relative;
     left: 0px;
     top: 0px;
+    width: 100%;
     height: 100%;
+    overflow: hidden;
+}
+#viewport {
+    position: relative;
+    top: 12px;
 	text-align: left;
 	font-size: 10px ;
     cursor: text;
@@ -58,12 +56,12 @@ body {
     -moz-box-shadow: rgba(0, 0, 0, 0.597656) 0px 0px 2px 0px, rgba(0, 0, 0, 0.398438) 0px 0px 5px 0px;
     box-shadow: rgba(0, 0, 0, 0.597656) 0px 0px 2px 0px, rgba(0, 0, 0, 0.398438) 0px 0px 5px 0px;
 }
-#page ul {
+#viewport ul {
     margin-left: 0px;
     position: relative;
     list-style: none;
 }
-#page li {
+#viewport li {
     position: relative;
     display: list-item;
     float: left;
@@ -91,8 +89,8 @@ body {
 }
 #clipboard-box {
     position: absolute;
-    right: 0px;
-    bottom: 0px;
+    left: 0px;
+    top: 0px;
     width: 300px;
     height: 24px;
 }
@@ -136,7 +134,7 @@ body {
     margin-top: -22px;
     width: 29px;
     height: 44px;
-    position: absolute;
+    position: fixed;
     overflow: hidden;
     opacity: 0.5;
 	filter: alpha(opacity=50) ;
@@ -163,7 +161,6 @@ body {
     background-color: white;
 }
 #loadbar {
-    position: fixed;
     left: 0px;
     top: 0px;
     height: 12px;

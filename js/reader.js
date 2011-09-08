@@ -10,31 +10,7 @@ $(document).ready(function() {
     // Run the preloader
     preloader.run();
     // Add event handlers
-
-    // Etc
-    $("#next-page").css("right", $.scrollbarWidth()+"px");        
 });
-/**
- * jQuery Scrollbar Width v1.0
- * 
- * Copyright 2011, Rasmus Schultz
- * Licensed under LGPL v3.0
- * http://www.gnu.org/licenses/lgpl-3.0.txt
- */
-(function($){
-$.scrollbarWidth = function() {
-  if (!$._scrollbarWidth) {
-     var $body = $('body');
-    var w = $body.css('overflow', 'hidden').width();
-    $body.css('overflow','scroll');
-    w -= $body.width();
-    if (!w) w=$body.width()-$body[0].clientWidth; // IE in standards mode
-    $body.css('overflow','');
-    $._scrollbarWidth = w;
-  }
-  return $._scrollbarWidth;
-};
-})(jQuery);
 /**
  * Preloader
  *
@@ -45,7 +21,7 @@ var preloader = {
     doneNow: 0,
     data: undefined,
     run: function() {
-        preloader.prepareImageItems();
+        //preloader.prepareImageItems();
         preloader.prepareDataItems();
 
         preloader.loadItems();
@@ -90,7 +66,7 @@ var preloader = {
                 var imgLoad = $("<img></img>");
                 $(imgLoad).attr("src", item.url);
                 $(imgLoad).unbind("load");
-                $(imgLoad).bind("load", item.callback);
+                $(imgLoad).bind("load", function(){item.callback();});
                 $(imgLoad).appendTo($("#items"));
             }
             else if(item.type == "data"){
@@ -143,6 +119,8 @@ var reader = {
     selectedText: undefined,
     lastSelectionTime: new Date().getTime(),*/
     totalWidth: undefined,
+    // To animate the scrollbar of the browser, we have to deal with different browsers
+    scrollOwner: $.browser.msie || $.browser.mozilla || $.browser.opera ? "html" : "body",
     init: function(data) {
         // Init variables
         $.extend(reader, data);
@@ -162,8 +140,8 @@ var reader = {
         totalWidth += pages[l-1].pageWidth;
         $("#page-container").width(totalWidth);
         // Add event listeners
-        $("#page").width(pages[0].pageWidth);
-        $("#page").height(pages[0].pageHeight);
+        $("#viewport").width(pages[0].pageWidth);
+        $("#viewport").height(pages[0].pageHeight);
         reader.resize();
         reader.addKeyboardEventHandler();
         $(window).resize(reader.resize);
@@ -171,14 +149,14 @@ var reader = {
         $('#pre-page').click(reader.prePage);
     },
     resize: function() {
-        $("#main-panel").height($(window).height() - $("#top-panel").height()); 
+//        $("#main-panel").height($(window).height() - $("#top-panel").height()); 
     },
     nextPage: function() {
         if( reader.currentPage  == reader.pages.length )	// no next page
             return ;
         var offset = - reader.currentPage * reader.pages[0].pageWidth;
+        $("#page-container").stop().animate({"marginLeft": offset});
         reader.scrollTo(0);
-        $("#page-container").stop().animate({"marginLeft": offset}, 300, "swing");
         reader.currentPage ++;
     },
     prePage: function() {
@@ -187,7 +165,7 @@ var reader = {
         }
         var offset = - (reader.currentPage -2) * reader.pages[0].pageWidth;
         reader.scrollTo(0);
-        $("#page-container").stop().animate({"marginLeft": offset}, 300, "swing");
+        $("#page-container").stop().animate({"marginLeft": offset});
         reader.currentPage --;
     },
     scroll: function(offset) {
@@ -196,41 +174,53 @@ var reader = {
             offsetStr = "+=" + offset + "px";
         else
             offsetStr = "-=" + (-offset) + "px";
-        $("#main-panel").stop().animate({"scrollTop": offsetStr}, 300, "swing");
+        $(reader.scrollOwner).stop().animate({"scrollTop": offsetStr});
     },
     scrollTo: function(yPos) {
-        $("#main-panel").stop().animate({"scrollTop": yPos}, 300, "swing");
+        $(reader.scrollOwner).stop().animate({"scrollTop": yPos+"px"});
     },
     addKeyboardEventHandler: function() {
         $(document).keydown(function(e) {
             var ctrlKey = 17, cKey = 67, pgUpKey = 33, pgDnKey = 34;
             var ltKey = 37, rtKey = 39, upKey = 38, dnKey = 40;
             if(e.keyCode == pgUpKey) {
-                reader.scroll(-$("#main-panel").height());
+                if($(window).scrollTop() > 0) {
+                    var h = $(window).height();
+                    reader.scroll(-h);
+                }
+                else {// already at the top
+                    reader.prePage();
+                }
                 e.preventDefault();
             }
             else if(e.keyCode == pgDnKey) {
-                reader.scroll($("#main-panel").height());
+                var h = $(window).height();
+                if ($(window).scrollTop() + h < $("#viewport").height()) {
+                    reader.scroll(h);
+                }
+                else {// already at the bottom
+                   reader.nextPage();
+                }
                 e.preventDefault();
             }
             else if(e.keyCode == ltKey) {
-                if ($("#page").width() < $("#main-panel").width()) {
+                if ($("#viewport").width() < $(window).width()) {
                     reader.prePage();
                     e.preventDefault();
                 }
             }
             else if(e.keyCode == rtKey) {
-                if ($("#page").width() < $("#main-panel").width()) {
+                if ($("#viewport").width() < $(window).width()) {
                     reader.nextPage();
                     e.preventDefault();
                 }
             }
             else if(e.keyCode == upKey) {
-                $("#main-panel").scrollTop($("#main-panel").scrollTop()-12);
+                $(window).scrollTop($(window).scrollTop()-12);
                 e.preventDefault();
             }
             else if(e.keyCode == dnKey) {
-                $("#main-panel").scrollTop($("#main-panel").scrollTop()+12);
+                $(window).scrollTop($(window).scrollTop()+12);
                 e.preventDefault();
             }
         }).keyup(function(e) {
@@ -570,12 +560,6 @@ $(document).ready(function(){
         $(document).focus();
     }) ;
 }) ;*/
-
-function scroll(offset) {
-    var main =  $("#main");
-    var yPos = main.scrollTop();
-    main.scrollTop(yPos + offset);
-}
 
 function loadPage(docId, pageNum) {
 	if(!reader.empty) {
