@@ -1,5 +1,7 @@
 body {
     overflow: hidden;
+    background: transparent url(/images/noise.png) center center repeat;
+	background-color: #555555;
 }
 #top-panel {
     height: 12px;
@@ -69,7 +71,7 @@ body {
 .page-image {
     left: 0px;
     top: 0px;
-	width: 819px;
+    width: 100%;
 	height: 100%;
     display: block;
     /* Disable the default behaviour of browser 

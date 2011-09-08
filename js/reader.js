@@ -123,8 +123,8 @@ var preloader = {
         if(preloader.onDoneLoad)
             preloader.onDoneLoad();
 
-        $("#preloader").animate({top: "100%"}, 1000, "swing", function() {
-            $("#preloader").remove();
+        $("#preloader").delay(200).fadeOut(400,function() {
+            $("#top-panel").animate({"opacity": 0.5}, 400);
         });
     },
     onDoneLoad: undefined
@@ -151,6 +151,8 @@ var reader = {
         var l = pages.length;
         for (var i = 0; i < l; ++i) {
             var li = $('<li><img class="page-image" unselectable="on" src="/api/content/page-'+(i+1)+'.png"/></li>');
+            li.width(pages[i].pageWidth);
+            li.height(pages[i].pageHeight);
             li.appendTo($("#page-container"));
         }
         // Adjust the width of #page-container
@@ -160,6 +162,8 @@ var reader = {
         totalWidth += pages[l-1].pageWidth;
         $("#page-container").width(totalWidth);
         // Add event listeners
+        $("#page").width(pages[0].pageWidth);
+        $("#page").height(pages[0].pageHeight);
         reader.resize();
         reader.addKeyboardEventHandler();
         $(window).resize(reader.resize);
@@ -167,7 +171,7 @@ var reader = {
         $('#pre-page').click(reader.prePage);
     },
     resize: function() {
-        $("#main-panel").height($(window).height()); 
+        $("#main-panel").height($(window).height() - $("#top-panel").height()); 
     },
     nextPage: function() {
         if( reader.currentPage  == reader.pages.length )	// no next page
@@ -212,18 +216,22 @@ var reader = {
             else if(e.keyCode == ltKey) {
                 if ($("#page").width() < $("#main-panel").width()) {
                     reader.prePage();
+                    e.preventDefault();
                 }
             }
             else if(e.keyCode == rtKey) {
                 if ($("#page").width() < $("#main-panel").width()) {
                     reader.nextPage();
+                    e.preventDefault();
                 }
             }
             else if(e.keyCode == upKey) {
                 $("#main-panel").scrollTop($("#main-panel").scrollTop()-12);
+                e.preventDefault();
             }
             else if(e.keyCode == dnKey) {
                 $("#main-panel").scrollTop($("#main-panel").scrollTop()+12);
+                e.preventDefault();
             }
         }).keyup(function(e) {
         }) ;
