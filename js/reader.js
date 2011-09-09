@@ -21,13 +21,13 @@ var preloader = {
     doneNow: 0,
     data: undefined,
     run: function() {
-        //preloader.prepareImageItems();
+        preloader.prepareImageItems();
         preloader.prepareDataItems();
 
         preloader.loadItems();
     },
     prepareImageItems: function() {
-		var everything = $("body").find("*").each(function() {
+		var everything = $("*").each(function() {
 			var url = "";
 			if ($(this).css("background-image") != "none") {
 				var url = $(this).css("background-image");
@@ -63,11 +63,14 @@ var preloader = {
 		for (var i = 0; i < length; i++) {
             var item = items[i];
             if(item.type == "img") {
-                var imgLoad = $("<img></img>");
-                $(imgLoad).attr("src", item.url);
-                $(imgLoad).unbind("load");
-                $(imgLoad).bind("load", function(){item.callback();});
-                $(imgLoad).appendTo($("#items"));
+                var $imgLoad = $("<img></img>");
+                $imgLoad.attr("src", item.url);
+                $imgLoad.unbind("load");
+                $imgLoad.one("load", item.callback)
+                        .each(function() {// Fix for IE cache bug
+                            if(this.complete) $(this).load();
+                        });
+                $imgLoad.appendTo($("#items"));
             }
             else if(item.type == "data"){
                 $.get(item.url, {}, item.callback, "json"); 
@@ -88,11 +91,11 @@ var preloader = {
 		if (perc > 99) {
 			$("#loadbar").stop().animate({
 				width: perc + "%"
-			}, 500, "linear", preloader.doneLoad );
+			}, 500, preloader.doneLoad);
 		} else {
 			$("#loadbar").stop().animate({
 				width: perc + "%"
-			}, 500, "linear", function() { });
+			}, 500);
 		}
 	},
     doneLoad: function() {
