@@ -112,68 +112,76 @@ var preloader = {
  * Reader
  **/
 var reader = {
-	zoomFactor: 1.00,
+	zoomFactor: 1.1,
 	zoomMode: 'normal',	// 3 possible values: normal, fit-width, fit-height
     currentPage: 1, // start from page 1 by default
-	/*selectingBox: undefined,
-    selectedArea: undefined,
-    selectingEventCount: 0,
-	selectingPrecision: 6,	// text selection precision
-    selectedText: undefined,
-    lastSelectionTime: new Date().getTime(),*/
-    totalWidth: undefined,
+	totalWidth: undefined,
     // To animate the scrollbar of the browser, we have to deal with different browsers
     scrollOwner: $.browser.msie || $.browser.mozilla || $.browser.opera ? "html" : "body",
     init: function(data) {
-        // Init variables
         $.extend(reader, data);
-        // Spawn placeholder for pages
+        reader.initPages();
+        reader.initEventHandlers();
+        reader.zoom(reader.zoomFactor);
+    },
+    initPages: function() {
         var pages = reader.pages;
         var l = pages.length;
         for (var i = 0; i < l; ++i) {
-            var $li = $('<li><img class="page-image" unselectable="on" src="/api/content/page-'+(i+1)+'.png"/></li>');
-            $li.width(pages[i].pageWidth);
-            $li.height(pages[i].pageHeight);
+            var $li = $('<li pageId="'+(i+1)+'"><img class="page-image" unselectable="on" src="/api/content/page-'+(i+1)+'.png"/></li>');
             $li.appendTo($("#page-container"));
             $("img", $li).mousedown(reader.disableDragging);
         }
-        // Adjust the width of #page-container
+    },
+    initEventHandlers: function() {
+        reader.initKeyboardEventHandler();
+        $('#next-page').click(reader.nextPage);
+        $('#pre-page').click(reader.prePage);
+    },
+    zoom: function(factor) {
+        var pages = reader.pages;
+        // zoom viewport
+        $("#viewport").width(factor * pages[0].pageWidth);
+        $("#viewport").height(factor * pages[0].pageHeight);
+        // zoom page-container
+        var l = pages.length;
         var totalWidth = 0;
         for (var i = 0; i < l; ++i)  
             totalWidth += pages[i].pageWidth;
         totalWidth += pages[l-1].pageWidth;
-        $("#page-container").width(totalWidth);
-        // Add event listeners
-        $("#viewport").width(pages[0].pageWidth);
-        $("#viewport").height(pages[0].pageHeight);
-        reader.resize();
-        reader.addKeyboardEventHandler();
-        $(window).resize(reader.resize);
-        $('#next-page').click(reader.nextPage);
-        $('#pre-page').click(reader.prePage);
-    },
-    resize: function() {
-//        $("#main-panel").height($(window).height() - $("#top-panel").height()); 
+        $("#page-container").width(factor * totalWidth);
+        // zoom images
+        $("#page-container li").each(function() {
+            var i = parseInt($(this).attr("pageId"));
+            $(this).width(factor * pages[i-1].pageWidth);
+            $(this).height(factor * pages[i-1].pageHeight);
+        });
+        // adjust offset
+        var offset = reader.calOffset();
+        $("#page-container").css("marginLeft", offset);
     },
     disableDragging: function(e) {
         if(e.preventDefault) e.preventDefault(); 
     },
+    calOffset: function() {
+        return - reader.zoomFactor * (reader.currentPage-1) * reader.pages[0].pageWidth;
+    },
     nextPage: function() {
         if( reader.currentPage  == reader.pages.length )	// no next page
             return ;
-        var offset = - reader.currentPage * reader.pages[0].pageWidth;
+        reader.currentPage ++;
+        var offset = reader.calOffset();
         $("#page-container").stop().animate({"marginLeft": offset});
         reader.scrollTo(0);
-        reader.currentPage ++;
     },
     prePage: function() {
         if( reader.currentPage  == 1 )	{// no pre page
             return ;
         }
-        var offset = - (reader.currentPage -2) * reader.pages[0].pageWidth;
+        reader.currentPage --;
+        var offset = reader.calOffset();
         reader.scrollTo(0);
         $("#page-container").stop().animate({"marginLeft": offset});
-        reader.currentPage --;
     },
     scroll: function(offset) {
         var offsetStr;
@@ -186,7 +194,7 @@ var reader = {
     scrollTo: function(yPos) {
         $(reader.scrollOwner).stop().animate({"scrollTop": yPos+"px"});
     },
-    addKeyboardEventHandler: function() {
+    initKeyboardEventHandler: function() {
         $(document).keydown(function(e) {
             var ctrlKey = 17, cKey = 67, pgUpKey = 33, pgDnKey = 34;
             var ltKey = 37, rtKey = 39, upKey = 38, dnKey = 40;
@@ -234,6 +242,20 @@ var reader = {
         }) ;
     }
 } ;
+/**
+ * TextSelector
+ * */
+var textSelector = {
+    /*selectingBox: undefined,
+    selectedArea: undefined,
+    selectingEventCount: 0,
+	selectingPrecision: 6,	// text selection precision
+    selectedText: undefined,
+    lastSelectionTime: new Date().getTime(),*/
+    init: function() {
+    },
+    
+};
 /**
  * Helper functions
  * */
