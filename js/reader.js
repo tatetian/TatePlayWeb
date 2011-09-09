@@ -112,7 +112,7 @@ var preloader = {
  * Reader
  **/
 var reader = {
-	zoomFactor: 1.1,
+	zoomFactor: undefined,
 	zoomMode: 'normal',	// 3 possible values: normal, fit-width, fit-height
     currentPage: 1, // start from page 1 by default
 	totalWidth: undefined,
@@ -122,7 +122,7 @@ var reader = {
         $.extend(reader, data);
         reader.initPages();
         reader.initEventHandlers();
-        reader.zoom(reader.zoomFactor);
+        reader.zoom(1.0);
     },
     initPages: function() {
         var pages = reader.pages;
@@ -139,6 +139,7 @@ var reader = {
         $('#pre-page').click(reader.prePage);
     },
     zoom: function(factor) {
+        reader.zoomFactor = factor;
         var pages = reader.pages;
         // zoom viewport
         $("#viewport").width(factor * pages[0].pageWidth);
