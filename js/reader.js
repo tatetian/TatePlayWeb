@@ -128,10 +128,11 @@ var reader = {
         var pages = reader.pages;
         var l = pages.length;
         for (var i = 0; i < l; ++i) {
-            var li = $('<li><img class="page-image" unselectable="on" src="/api/content/page-'+(i+1)+'.png"/></li>');
-            li.width(pages[i].pageWidth);
-            li.height(pages[i].pageHeight);
-            li.appendTo($("#page-container"));
+            var $li = $('<li><img class="page-image" unselectable="on" src="/api/content/page-'+(i+1)+'.png"/></li>');
+            $li.width(pages[i].pageWidth);
+            $li.height(pages[i].pageHeight);
+            $li.appendTo($("#page-container"));
+            $("img", $li).mousedown(reader.disableDragging);
         }
         // Adjust the width of #page-container
         var totalWidth = 0;
@@ -150,6 +151,9 @@ var reader = {
     },
     resize: function() {
 //        $("#main-panel").height($(window).height() - $("#top-panel").height()); 
+    },
+    disableDragging: function(e) {
+        if(e.preventDefault) e.preventDefault(); 
     },
     nextPage: function() {
         if( reader.currentPage  == reader.pages.length )	// no next page
