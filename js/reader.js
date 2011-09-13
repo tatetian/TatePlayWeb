@@ -9,7 +9,6 @@ $(document).ready(function() {
     } ;
     // Run the preloader
     preloader.run();
-    // Add event handlers
 });
 /**
  * Preloader
@@ -103,7 +102,7 @@ var preloader = {
             preloader.onDoneLoad();
 
         $("#preloader").delay(200).fadeOut(400,function() {
-            $("#top-panel").animate({"opacity": 0.5}, 400);
+            $("#top-panel").fadeTo(400, 0.5);
         });
     },
     onDoneLoad: undefined
@@ -112,6 +111,8 @@ var preloader = {
  * Reader
  **/
 var reader = {
+    zoomMin: 0.5,
+    zoomMax: 2.0,
 	zoomFactor: undefined,
 	zoomMode: 'normal',	// 3 possible values: normal, fit-width, fit-height
     currentPage: 1, // start from page 1 by default
@@ -120,15 +121,43 @@ var reader = {
     scrollOwner: $.browser.msie || $.browser.mozilla || $.browser.opera ? "html" : "body",
     init: function(data) {
         $.extend(reader, data);
+        reader.initTopbar();
         reader.initPages();
         reader.initEventHandlers();
         reader.zoom(1.0);
+    },
+    initTopbar: function() {
+        var l = reader.pages.length;
+        var $tr = $("#page-selector tr");
+        var goToEventHandler = function(){
+            var pageId = $(this).attr("pageId");
+            reader.goToPage(pageId)
+        };
+        for (var i = 2; i <= l; ++i) {//the first td is special, it is already there
+            var $td = $("<td pageId="+i+">"+i+"</td>");
+            $td.appendTo($tr);
+            $td.click(goToEventHandler);
+        }
+        var $firstTd = $tr.find(":first");
+        $firstTd.click(goToEventHandler);
+
+        $("#top-panel").hover(
+            function(e) {
+                $("#page-selector-wrapper").stop().animate({"height": $(this).height()}, 200, "linear",
+                    function() {$("#page-selector").stop().delay(300).fadeIn(300);});
+            }, 
+            function(e) {
+                $("#page-selector-wrapper").stop().animate({"height": $(this).height()/2}, 200, "linear",
+                    function() {$("#page-selector").stop().fadeOut(200);});
+            }
+        );
+        $("#page-anchor").width(($(window).width()+1)/l-2);
     },
     initPages: function() {
         var pages = reader.pages;
         var l = pages.length;
         for (var i = 0; i < l; ++i) {
-            var $li = $('<li pageId="'+(i+1)+'"><img class="page-image" unselectable="on" src="/api/content/page-'+(i+1)+'.png"/></li>');
+            var $li = $('<li pageId='+(i+1)+'><img class="page-image" unselectable="on" src="/api/content/page-'+(i+1)+'.png"/></li>');
             $li.appendTo($("#page-container"));
             $("img", $li).mousedown(reader.disableDragging);
         }
@@ -139,6 +168,10 @@ var reader = {
         $('#pre-page').click(reader.prePage);
     },
     zoom: function(factor) {
+        if (factor > reader.zoomMax)
+            factor = reader.zoomMax;
+        else if (factor < reader.zoomMin)
+            factor = reader.zoomMin;
         reader.zoomFactor = factor;
         var pages = reader.pages;
         // zoom viewport
@@ -153,26 +186,37 @@ var reader = {
         $("#page-container").width(factor * totalWidth);
         // zoom images
         $("#page-container li").each(function() {
-            var i = parseInt($(this).attr("pageId"));
+            var i = $(this).attr("pageId");
             $(this).width(factor * pages[i-1].pageWidth);
             $(this).height(factor * pages[i-1].pageHeight);
         });
         // adjust offset
-        var offset = reader.calOffset();
+        var offset = reader.calPageOffset();
         $("#page-container").css("marginLeft", offset);
     },
     disableDragging: function(e) {
         if(e.preventDefault) e.preventDefault(); 
     },
-    calOffset: function() {
+    calPageOffset: function() {
         return - reader.zoomFactor * (reader.currentPage-1) * reader.pages[0].pageWidth;
+    },
+    calPageAnchorOffset: function() {
+        var l = reader.pages.length ;
+        return (reader.currentPage - 1) * ($(window).width() + 1) / l;
+    },
+    goToPage: function(pageNum) {
+        reader.currentPage = pageNum;
+        $("#page-container").css("marginLeft", reader.calPageOffset());
+        $("#page-anchor").css("left", reader.calPageAnchorOffset());
     },
     nextPage: function() {
         if( reader.currentPage  == reader.pages.length )	// no next page
             return ;
         reader.currentPage ++;
-        var offset = reader.calOffset();
+        var offset = reader.calPageOffset();
         $("#page-container").stop().animate({"marginLeft": offset});
+        offset = reader.calPageAnchorOffset();
+        $("#page-anchor").stop().animate({"left": offset});
         reader.scrollTo(0);
     },
     prePage: function() {
@@ -180,9 +224,11 @@ var reader = {
             return ;
         }
         reader.currentPage --;
-        var offset = reader.calOffset();
+        var offset = reader.calPageOffset();
         reader.scrollTo(0);
         $("#page-container").stop().animate({"marginLeft": offset});
+        offset = reader.calPageAnchorOffset();
+        $("#page-anchor").stop().animate({"left": offset});
     },
     scroll: function(offset) {
         var offsetStr;
