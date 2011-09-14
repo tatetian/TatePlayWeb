@@ -140,7 +140,6 @@ var topbar = {
 
         $("#top-panel").mouseenter(
             function(e) {
-                console.log("mouse entered");
                 if (topbar.unhoverTimer) {
                     clearTimeout(topbar.unhoverTimer);
                     topbar.unhoverTimer = null;
@@ -150,7 +149,6 @@ var topbar = {
             }
         ).mouseleave( 
             function(e) {
-                console.log("mouse leaved");
                 if (topbar.hoverTimer) {
                     clearTimeout(topbar.hoverTimer);
                     topbar.hoverTimer = null;
@@ -222,7 +220,7 @@ var reader = {
         var pages = reader.pages;
         var l = pages.length;
         for (var i = 0; i < l; ++i) {
-            var $li = $('<li pageId='+(i+1)+'><img class="page-image" unselectable="on" src="/api/content/page-'+(i+1)+'.png"/></li>');
+            var $li = $('<li pageId='+(i+1)+'><img class="page-image unselectable" unselectable="on" src="/api/content/page-'+(i+1)+'.png"/></li>');
             $li.appendTo($("#page-container"));
             $("img", $li).mousedown(reader.disableDragging);
         }

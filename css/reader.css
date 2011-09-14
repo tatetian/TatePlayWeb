@@ -78,9 +78,8 @@ i}
     width: 100%;
 	height: 100%;
     display: block;
-    /* Disable the default behaviour of browser 
-     * so that the image is not draggable.
-     * */
+}
+.unselectable {
     -webkit-user-select: none; 
     -khtml-user-select: none;
     -moz-user-select: none;
