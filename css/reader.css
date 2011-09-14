@@ -15,6 +15,7 @@ body {
     height: 8px;
     width: 100%;
     background-color: black;
+    cursor: pointer;
 }
 #main-panel {
     left: 0px;
@@ -193,7 +194,6 @@ i}
     cellspacing: 0px;
     table-layout: fixed;
     position: absolute;
-    cursor: pointer;
     display: none;
     z-index: 10;
     oveflow: hidden;

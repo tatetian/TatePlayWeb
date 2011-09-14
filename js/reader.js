@@ -1,3 +1,6 @@
+var nowTime = Date.now || function() {
+    return +new Date;
+}
 /**
  * Entry point
  * */
@@ -108,6 +111,89 @@ var preloader = {
     onDoneLoad: undefined
 } ;
 /**
+ * Topbar
+ **/
+var topbar = {
+    numPages: null,
+    currentPage: null,
+    onCellClick: null,
+    isHover: false,
+    hoverTimer: null,
+    unhoverTimer: null,
+    init: function(options) {
+        $.extend(topbar, options);
+
+        var l = options.numPages;
+        var $tr = $("#page-selector tr");
+        var cellClickEventHandler = function(){
+            var pageId = $(this).attr("pageId");
+            if(topbar.onCellClick)
+                topbar.onCellClick(pageId);
+        };
+        for (var i = 2; i <= l; ++i) {//the first td is special, it is already there
+            var $td = $("<td pageId="+i+">"+i+"</td>");
+            $td.appendTo($tr);
+            $td.click(cellClickEventHandler);
+        }
+        var $firstTd = $tr.find(":first");
+        $firstTd.click(cellClickEventHandler);
+
+        $("#top-panel").mouseenter(
+            function(e) {
+                console.log("mouse entered");
+                if (topbar.unhoverTimer) {
+                    clearTimeout(topbar.unhoverTimer);
+                    topbar.unhoverTimer = null;
+                }
+                else
+                    topbar.hoverTimer = setTimeout('$("#top-panel").trigger("hoverAWhile");topbar.hoverTimer=null;', 300);
+            }
+        ).mouseleave( 
+            function(e) {
+                console.log("mouse leaved");
+                if (topbar.hoverTimer) {
+                    clearTimeout(topbar.hoverTimer);
+                    topbar.hoverTimer = null;
+                }
+                else
+                    topbar.unhoverTimer = setTimeout('$("#top-panel").trigger("unhoverAWhile");topbar.unhoverTimer=null;', 300);
+            }
+        ).bind("hoverAWhile", {}, function(e) {
+            $("#page-selector-wrapper").stop().animate({"height": $(this).height()}, 200);
+            $("#page-selector").stop().fadeIn(200); 
+            }
+        ).bind("unhoverAWhile", {}, function(e) {
+            $("#page-selector").stop().fadeOut(200);
+            $("#page-selector-wrapper").stop().animate({"height": $(this).height()/2}, 200);
+        });
+        $("#page-anchor").width(($(window).width()+1)/l-2);
+
+        $(window).resize(topbar.resize);
+    },
+    nextPage: function() {
+        ++ topbar.currentPage;
+        var offset = topbar.calPageAnchorOffset();
+        $("#page-anchor").stop().animate({"left": offset});
+    },
+    prePage: function() {
+        -- topbar.currentPage;
+        var offset = topbar.calPageAnchorOffset();
+        $("#page-anchor").stop().animate({"left": offset});
+    },
+    goToPage: function(page) {
+        topbar.currentPage = page;
+        $("#page-anchor").css("left", topbar.calPageAnchorOffset());
+    },
+    resize: function(e) {
+        var l = topbar.numPages;
+        $("#page-anchor").width(($(window).width()+1)/l-2);
+        $("#page-anchor").css("left", topbar.calPageAnchorOffset());
+    },
+    calPageAnchorOffset: function() {
+        return (topbar.currentPage - 1) * ($(window).width() + 1) / topbar.numPages;
+    }
+};
+/**
  * Reader
  **/
 var reader = {
@@ -121,38 +207,16 @@ var reader = {
     scrollOwner: $.browser.msie || $.browser.mozilla || $.browser.opera ? "html" : "body",
     init: function(data) {
         $.extend(reader, data);
-        reader.initTopbar();
+        topbar.init({
+            "numPages": data.pages.length, 
+            "currentPage": reader.currentPage,
+            "onCellClick": function(pageId) {
+                reader.goToPage(pageId);
+            }
+        });
         reader.initPages();
         reader.initEventHandlers();
         reader.zoom(1.0);
-    },
-    initTopbar: function() {
-        var l = reader.pages.length;
-        var $tr = $("#page-selector tr");
-        var goToEventHandler = function(){
-            var pageId = $(this).attr("pageId");
-            reader.goToPage(pageId)
-        };
-        for (var i = 2; i <= l; ++i) {//the first td is special, it is already there
-            var $td = $("<td pageId="+i+">"+i+"</td>");
-            $td.appendTo($tr);
-            $td.click(goToEventHandler);
-        }
-        var $firstTd = $tr.find(":first");
-        $firstTd.click(goToEventHandler);
-
-        $("#top-panel").hover(
-            function(e) {
-                $("#page-selector-wrapper").animate({"height": $(this).height()}, 200, "linear",
-                    function() {$("#page-selector").delay(300).fadeIn(300);});
-            }, 
-            function(e) {
-                $("#page-selector").fadeOut(200, function() {
-                    $("#page-selector-wrapper").animate({"height": $(this).height()/2}, 200);
-                });
-            }
-        );
-        $("#page-anchor").width(($(window).width()+1)/l-2);
     },
     initPages: function() {
         var pages = reader.pages;
@@ -194,28 +258,17 @@ var reader = {
         // adjust offset
         var offset = reader.calPageOffset();
         $("#page-container").css("marginLeft", offset);
-        // on window resize
-        $(window).resize(reader.resize);
-    },
+       },
     disableDragging: function(e) {
         if(e.preventDefault) e.preventDefault(); 
-    },
-    resize: function(e) {
-        var l = reader.pages.length;
-        $("#page-anchor").width(($(window).width()+1)/l-2);
-        $("#page-anchor").css("left", reader.calPageAnchorOffset());
     },
     calPageOffset: function() {
         return - reader.zoomFactor * (reader.currentPage-1) * reader.pages[0].pageWidth;
     },
-    calPageAnchorOffset: function() {
-        var l = reader.pages.length ;
-        return (reader.currentPage - 1) * ($(window).width() + 1) / l;
-    },
     goToPage: function(pageNum) {
         reader.currentPage = pageNum;
         $("#page-container").css("marginLeft", reader.calPageOffset());
-        $("#page-anchor").css("left", reader.calPageAnchorOffset());
+        topbar.goToPage(pageNum);
     },
     nextPage: function() {
         if( reader.currentPage  == reader.pages.length )	// no next page
@@ -223,9 +276,8 @@ var reader = {
         reader.currentPage ++;
         var offset = reader.calPageOffset();
         $("#page-container").stop().animate({"marginLeft": offset});
-        offset = reader.calPageAnchorOffset();
-        $("#page-anchor").stop().animate({"left": offset});
         reader.scrollTo(0);
+        topbar.nextPage();
     },
     prePage: function() {
         if( reader.currentPage  == 1 )	{// no pre page
@@ -235,8 +287,7 @@ var reader = {
         var offset = reader.calPageOffset();
         reader.scrollTo(0);
         $("#page-container").stop().animate({"marginLeft": offset});
-        offset = reader.calPageAnchorOffset();
-        $("#page-anchor").stop().animate({"left": offset});
+        topbar.prePage();
     },
     scroll: function(offset) {
         var offsetStr;
