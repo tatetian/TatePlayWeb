@@ -143,12 +143,13 @@ var reader = {
 
         $("#top-panel").hover(
             function(e) {
-                $("#page-selector-wrapper").stop().animate({"height": $(this).height()}, 200, "linear",
-                    function() {$("#page-selector").stop().delay(300).fadeIn(300);});
+                $("#page-selector-wrapper").animate({"height": $(this).height()}, 200, "linear",
+                    function() {$("#page-selector").delay(300).fadeIn(300);});
             }, 
             function(e) {
-                $("#page-selector-wrapper").stop().animate({"height": $(this).height()/2}, 200, "linear",
-                    function() {$("#page-selector").stop().fadeOut(200);});
+                $("#page-selector").fadeOut(200, function() {
+                    $("#page-selector-wrapper").animate({"height": $(this).height()/2}, 200);
+                });
             }
         );
         $("#page-anchor").width(($(window).width()+1)/l-2);
@@ -193,9 +194,16 @@ var reader = {
         // adjust offset
         var offset = reader.calPageOffset();
         $("#page-container").css("marginLeft", offset);
+        // on window resize
+        $(window).resize(reader.resize);
     },
     disableDragging: function(e) {
         if(e.preventDefault) e.preventDefault(); 
+    },
+    resize: function(e) {
+        var l = reader.pages.length;
+        $("#page-anchor").width(($(window).width()+1)/l-2);
+        $("#page-anchor").css("left", reader.calPageAnchorOffset());
     },
     calPageOffset: function() {
         return - reader.zoomFactor * (reader.currentPage-1) * reader.pages[0].pageWidth;
@@ -300,7 +308,7 @@ var textSelector = {
     selectedText: undefined,
     lastSelectionTime: new Date().getTime(),*/
     init: function() {
-    },
+    }
     
 };
 /**
