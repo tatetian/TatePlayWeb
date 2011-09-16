@@ -27,20 +27,29 @@ body {
 	background-color: #555555/*#5E6165;*/
 }
 #toolbar {
-    position: fixed;
     left: 0px;
+    background: url(/images/logo.png) center center no-repeat;
+    background-color: black;
+}
+#searchbar {
+    right: 0px;
+    background: url(/images/search.png) center center no-repeat;
+    background-color: black;
+}
+.bottom-bar {
+    position: fixed;
     bottom: 0px;
     width: 29px;
-    height: 64px;
+    height: 44px;
     background-color: black;
     opacity: 0.5;
 	filter: alpha(opacity=50) ;
 }
-#toolbar:hover {
-    width: 100%;
+.bottom-bar:hover {
+    width: 62%;
     opacity: 0.8;
 	filter: alpha(opacity=80) ;
-i}
+}
 #invisible-layer {
     position: relative;
     left: 0px;
@@ -88,9 +97,10 @@ i}
 }
 .selected-area {
     position: absolute;
-    background-color: 000088;
+    background-color: #000088;
     opacity: 0.4;
     filter: alpha(opacity=40) ;
+    z-index:5;
 }
 #clipboard-box {
     position: absolute;
@@ -136,7 +146,7 @@ i}
 }
 #next-page, #pre-page {
     top: 50%;
-    margin-top: -22px;
+    margin-top: -42px;
     width: 29px;
     height: 44px;
     position: fixed;

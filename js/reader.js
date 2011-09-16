@@ -192,6 +192,233 @@ var topbar = {
     }
 };
 /**
+ * Text Selector
+ * */
+var textSelector = {
+    /*selectingBox: undefined,
+    selectedArea: undefined,
+    selectingEventCount: 0,
+	selectingPrecision: 6,	// text selection precision
+    selectedText: undefined,
+    lastSelectionTime: new Date().getTime(),*/
+    selectedText: null,
+    init: function(conf) {
+        $.extend(textSelector, conf);
+
+            },
+    selectWord: function(blocks, x, y) {
+        var position = textSelector.findWord(blocks, x, y);
+        if (!position)
+            return;
+
+        var i = position.blockIndex, j = position.lineIndex, k = position.wordIndex;
+        var block = blocks[i];
+        var line = block.lines[j];
+        var q = line.q;
+        var l = q[2*k], r = l + q[2*k+1];
+
+        textSelector.highlightArea({"l":l, "r":r, "t":line.t, "b":line.b});
+        textSelector.selectedText = line.s[k]; 
+    },
+    findWord: function(blocks, x, y) {
+        var block;
+        var line, lines;
+        var l, r;
+        var q;
+        for(var i = 0; i < blocks.length; ++i) {
+            block = blocks[i];
+            if ( textSelector.isPointInRect(x, y, block) ) {
+                lines = block.lines;
+                for(var j = 0; j < lines.length; ++j) {
+                    line = lines[j];
+                    if ( textSelector.isPointInRect(x, y, line) ) {
+                        q = line.q;
+                        for(var k = 0; k < q.length/2; ++k) {
+                            l = q[2*k]; r = l + q[2*k+1];
+                            if ( l <= x && x <= r ) {
+                                return {"blockIndex":i, "lineIndex":j, "wordIndex":k}; 
+                            }
+                        }
+                    }
+                }
+                return null;//found nothing
+            }
+        }
+        return null;//found nothing 
+    },
+    isPointInRect: function (x, y, rect) {
+        return rect.l <= x && x <= rect.r && 
+            rect.t < y && y <= rect.b;
+    },
+    highlightArea: function(block) {
+        var f = reader.zoomFactor;
+        $('<div class="selected-area"></div>')
+            .css('left', block.l * f )
+            .css('top', block.t * f )
+            .width((block.r - block.l)*f)
+            .height((block.b - block.t)*f)
+            .appendTo('#viewport');
+    },
+    localPos: function($container, pageX, pageY) {
+        var originPageX = $container.offset().left ;
+        var originPageY = $container.offset().top ;
+        return {x: pageX - originPageX, y: pageY - originPageY} ;
+    },
+    selectText: function(blocks, startX, startY, endX, endY, operationOnSelectedText) {
+        var f = reader.zoomFactor;
+        // tranform the coordinates according to zoomFactor
+        var left = ( ( startX < endX ? startX : endX )  )/  f ;
+        var top = ( ( startY < endY ? startY : endY ) ) / f ;
+        var right = ( ( startX > endX ? startX : endX ) ) / f ;
+        var bottom = ( ( startY > endY ? startY : endY ) )/ f ;
+
+        startPosition = textSelector.findWordRightAfter(blocks, left, top);
+        endPosition = textSelector.findWordRightBefore(blocks, right, bottom);
+
+        if (startPosition == null || endPosition == null)
+            return;
+
+        textSelector.highlightAndCopy(blocks, startPosition, endPosition);
+    },
+    findWordRightAfter: function(blocks, left, top)
+    {
+        var block;
+        var line, lines;
+        var l, r;
+        var q;
+        for(var i = 0; i < blocks.length; ++i) {
+            block = blocks[i];
+            if ( left <= block.l && top <= block.t )
+                return {"blockIndex": i, "lineIndex": 0, "wordIndex": 0};
+            else if ( textSelector.isPointInRect(left, top, block) ) {
+                lines = block.lines;
+                for(var j = 0; j < lines.length; ++j) {
+                    line = lines[j];
+                    if ( left <= line.l && top <= line.b )
+                        return {"blockIndex":i, "lineIndex":j, "wordIndex": 0};
+                    else if ( textSelector.isPointInRect(left, top, line) ) {
+                        q = line.q;
+                        for(var k = 0; k < q.length/2; ++k) {
+                            l = q[2*k]; r = l + q[2*k+1];
+                            if ( left <= r )
+                                return {"blockIndex":i, "lineIndex":j, "wordIndex":k}; 
+                        }
+                    }
+                }
+            }
+            else if ( left <= block.l && block.t <= top && top <= block.b) {
+                lines = block.lines;
+                for(var j = 0; j < lines.length; ++j) {
+                    line = lines[j];
+                    if ( top <= line.b )
+                        return {"blockIndex":i, "lineIndex":j, "wordIndex": 0};
+                }
+            }
+        }
+        return null;//found nothing 
+    },
+    findWordRightBefore: function(blocks, right, bottom)
+    {
+        var block;
+        var line, lines;
+        var l, r;
+        var q;
+        for(var i = blocks.length - 1; i >= 0; --i) {
+            block = blocks[i];
+            if ( right >= block.r && bottom >= block.b ) {
+                l = block.lines.length - 1;
+                line = block.lines[l];
+                return {"blockIndex": i, 
+                        "lineIndex": l, 
+                        "wordIndex": line.s.length - 1};
+            }
+            else if ( textSelector.isPointInRect(right, bottom, block) ) {
+                lines = block.lines;
+                for(var j = lines.length - 1; j >= 0; --j) {
+                    line = lines[j];
+                    if ( right >= line.r && bottom >= line.t ) {
+                        return {"blockIndex":i, "lineIndex":j, "wordIndex": line.s.length-1};
+                    }
+                    else if ( textSelector.isPointInRect(right, bottom, line) ) {
+                        q = line.q;
+                        for(var k = q.length/2 -1; k >= 0; --k) {
+                            l = q[2*k]; r = l + q[2*k+1];
+                            if ( right >= l )
+                                return {"blockIndex":i, "lineIndex":j, "wordIndex":k}; 
+                        }
+                    }
+                }
+            }
+            else if ( right >= block.r && block.t <= bottom && bottom <= block.b ) {
+                lines = block.lines;
+                for(var j = lines.length - 1; j >= 0; --j) {
+                    line = lines[j];
+                    if ( line.t <= bottom ) 
+                        return {"blockIndex":i, "lineIndex":j, "wordIndex": line.s.length-1};
+                }
+            }
+        }
+        return null;//found nothing 
+    },
+    highlightAndCopy: function(blocks, startPosition, endPosition)
+    {
+        var i1 = startPosition.blockIndex;
+        var j1 = startPosition.lineIndex;
+        var k1 = startPosition.wordIndex;
+        var i2 = endPosition.blockIndex;
+        var j2 = endPosition.lineIndex;
+        var k2 = endPosition.wordIndex;
+
+        var block, lines, line;
+        var p, q, l, r;
+        var kk1, kk2;
+        
+        var text = "";
+        for(var i = i1; i <= i2; ++i)
+        {
+            if (i != i1)
+                text += "\n\n";
+
+            block = blocks[i];
+            lines = block.lines;
+            for(var j = (i == i1? j1 : 0) ; 
+                j < (i == i2? j2 + 1: lines.length); ++j)
+            {
+                if (j != (i ==i1? j1 : 0))
+                    text += '\n';
+
+                line = lines[j];i
+                q = line.q;
+                if (q.length < 2)
+                    continue;
+                kk1 = (i == i1 && j == j1? k1 : 0);
+                kk2 = (i == i2 && j == j2? k2 : q.length / 2 - 1);
+                l = q[2 * kk1];
+                p = 2 * kk2;
+                r = q[p] + q[p + 1];
+                textSelector.highlightArea({"l":l, "r":r, "t":line.t, "b":line.b});
+                for(var k = kk1; k <= kk2; ++k) {
+                    if (k != kk1)
+                        text += " ";
+                    text += line.s[k];
+                }
+            }
+        }
+        textSelector.selectedText = text;
+    },
+    isBlockSelected: function(block, left, top, right, bottom) {
+        var resizedTop = ( 2 * block.t + block.b ) / 3;
+        var resizedBottom = ( block.t + 2 * block.b ) / 3;
+        if ( ( (left < block.l && block.l < right ) ||
+               (left < block.r && block.r < right ) ) &&
+             ( (top < resizedTop && resizedTop < bottom ) ||
+               (top < resizedBottom && resizedBottom < bottom) ) )
+             return true;
+        return false;
+    }
+};
+
+/**
  * Reader
  **/
 var reader = {
@@ -213,6 +440,7 @@ var reader = {
             }
         });
         reader.initPages();
+        reader.initTextSelector();;
         reader.initEventHandlers();
         reader.zoom(1.0);
     },
@@ -224,6 +452,31 @@ var reader = {
             $li.appendTo($("#page-container"));
             $("img", $li).mousedown(reader.disableDragging);
         }
+    },
+    initTextSelector: function() {
+        textSelector.init();
+
+        $("#viewport").mousedown(function(e) {
+            $(".selected-area").remove();
+
+            var localOriginPos = textSelector.localPos($(this), e.pageX, e.pageY) ;
+            $("#viewport").mousemove(localOriginPos, function(e) {
+                var localNowPos = localPos($(this), e.pageX, e.pageY) ;
+                var localOriginPos = e.data ;
+                var blocks = reader.pages[reader.currentPage-1].blocks;
+                $(".selected-area").remove();
+                textSelector.selectText(blocks, localOriginPos.x, localOriginPos.y, localNowPos.x, localNowPos.y) ;
+            }) ;
+        }).mouseup(function(e) {
+            $(this).css("cursor", "text");
+            $(this).unbind("mousemove");
+        }).dblclick(function(e) {// double click to select a word
+            var localNowPos = textSelector.localPos($(this), e.pageX, e.pageY);
+            var x = localNowPos.x;
+            var y = localNowPos.y;
+            var blocks = reader.pages[reader.currentPage-1].blocks;
+            textSelector.selectWord(blocks, x, y );
+        }) ;
     },
     initEventHandlers: function() {
         reader.initKeyboardEventHandler();
@@ -264,6 +517,8 @@ var reader = {
         return - reader.zoomFactor * (reader.currentPage-1) * reader.pages[0].pageWidth;
     },
     goToPage: function(pageNum) {
+        if (reader.currentPage != pageNum)
+            $(".selected-area").remove();
         reader.currentPage = pageNum;
         $("#page-container").css("marginLeft", reader.calPageOffset());
         topbar.goToPage(pageNum);
@@ -273,6 +528,7 @@ var reader = {
             return ;
         reader.currentPage ++;
         var offset = reader.calPageOffset();
+        $(".selected-area").remove();
         $("#page-container").stop().animate({"marginLeft": offset});
         reader.scrollTo(0);
         topbar.nextPage();
@@ -282,6 +538,7 @@ var reader = {
             return ;
         }
         reader.currentPage --;
+        $(".selected-area").remove();
         var offset = reader.calPageOffset();
         reader.scrollTo(0);
         $("#page-container").stop().animate({"marginLeft": offset});
@@ -346,20 +603,6 @@ var reader = {
         }) ;
     }
 } ;
-/**
- * TextSelector
- * */
-var textSelector = {
-    /*selectingBox: undefined,
-    selectedArea: undefined,
-    selectingEventCount: 0,
-	selectingPrecision: 6,	// text selection precision
-    selectedText: undefined,
-    lastSelectionTime: new Date().getTime(),*/
-    init: function() {
-    }
-    
-};
 /**
  * Helper functions
  * */
@@ -575,15 +818,6 @@ function isBlockSelected(block, left, top, right, bottom) {
     return false;
 }
 
-function highlightArea(block) {
-    var f = reader.zoomFactor;
-    $new_highlight_area = $('<div class="selected-area"></div>');
-    $new_highlight_area.css('left', block.l * f );
-    $new_highlight_area.css('top', block.t * f );
-    $new_highlight_area.width((block.r - block.l)*f);
-    $new_highlight_area.height((block.b - block.t)*f);
-    $('#viewport').append($new_highlight_area);
-}
 
 /*
  * init elements on load event  
