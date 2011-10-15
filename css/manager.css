@@ -1,0 +1,270 @@
+body {
+    background: transparent url(/images/bg-tile-green.png) repeat scroll center top;
+    overflow: auto;
+    color: #5A5050;
+    font-family: Helvetica,Arial;
+    text-align: center;
+}
+#viewport {
+    overflow: hidden;
+    position: relative;
+    width: 939px;
+    margin: 0 auto;
+    padding: 0 86px 120px;
+}
+#nav {
+    overflow: hidden;
+    width: 939px;
+    height: 23px;
+    margin: 0 0 20px;
+    padding: 0;
+}
+#nav ul li a {
+    background: url(/images/bg-tile-dark.png) repeat center top;
+    border: none;
+    color: white;
+    display: block;
+    font-family: Helvetica,Arial;
+    font-size: 10px;
+    -moz-border-radius: 0 0 5px 5px;
+    text-transform: uppercase;
+    -webkit-border-bottom-left-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    height: 10px;
+    padding: 3px 8px 4px;
+    border-bottom-left-radius: 5px 5px;
+    border-bottom-right-radius: 5px 5px;
+}
+#nav ul li a:hover, #nav ul li a.current {
+    background: url(/images/bg-tile-light-green.png) repeat center top;
+}
+#nav ul li a:hover span.nip, #nav ul li a.current span.nip {
+    background: url(/images/nip-dark-bottom.png) no-repeat center -6px;
+}
+#nav ul {
+    display: block;
+}
+#nav ul li {
+    float: left;
+    display: list-item;
+    margin: 0 3px 0 0;
+    position: relative;
+}
+#nav ul li a span.nip {
+    background: url(/images/nip-dark-bottom.png) no-repeat center top;
+    left: 0;
+    position: absolute;
+    top: 17px;
+    width: 100%;
+    height: 6px;
+}
+span.nip {
+    background: url(/images/nip-light-bottom.png) no-repeat center top;
+    display: block;
+    text-indent: -3000em;
+}
+#nav ul li.logout_btn {
+    float: right;
+}
+#loader {
+    background: url(/images/bg-tile-dark.png) repeat-x center -2px;
+    border-bottom: 1px solid #B1AEAE;
+    height: 45px;
+    overflow: visible;
+    position: relative;
+    margin: 50px 0px 20px;
+}
+#add_file_btn {
+    left: -57px;
+    position: absolute;
+    top: 11px;
+
+    background: url(/images/sprite-cross.png) no-repeat -22px top;
+    cursor: pointer;
+    height: 22px;
+    text-indent: -3000em;
+    width: 22px;
+}
+#add_file_btn:hover {
+    background: url(/images/sprite-cross.png) no-repeat -44px top;
+}
+#help_btn {
+    background: url(/images/sprite-btn-help.png) no-repeat -15px top;
+    cursor: pointer;
+    display: block;
+    position: absolute;
+    height: 15px;
+    width: 15px;
+    right: -52px;
+    top: 18px;
+    text-indent: -3000em;
+}
+#help_btn:hover {
+    background: url(/images/sprite-btn-help.png) no-repeat 0 top;
+}
+#folder {
+    border-bottom: 1px solid #B1AEAE;
+}
+#folder_name {
+    cursor: pointer;
+}
+#folder_name:hover {
+    color: #6EB3D1;
+}
+#folder_list {
+    position: absolute;
+    left: 86px;
+    width: 939px;
+    color: white;
+    z-index: 5;
+    height: 60px;
+    display: none;
+    overflow: visible;
+}
+#more_folders {
+    position: relative;
+    bottom: 0px;
+    height: 100%;
+    width: 100%;
+    background: transparent url(/images/bg-tile-dark.png) repeat scroll center top;
+    -moz-border-radius: 0 0 5px 5px;
+    -webkit-border-bottom-left-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px 5px;
+    border-bottom-right-radius: 5px 5px;
+}
+#more_folders .one_folder {
+    font: normal 20px/1 ClarendonFSLight;
+    text-align: left;
+    padding: 4px 0px 4px 0px;
+    border-top: 1px solid white;
+}
+#more_folders .one_folder:hover {
+    background:url(/images/bg-tile-dark-hover.png) repeat left top;color:#fff
+}
+#more_folders .one_folder span {
+    float: right;
+}
+#folder_list span.nip {
+    background: transparent url(/images/nip-dark-bottom.png) no-repeat center top;
+    display: block;
+    left: 0;
+    position: absolute;
+    bottom: -6px;
+    width: 100%;
+    height: 6px;
+}
+#folder h2 {
+    display: block;
+    font: normal 70px/1 ClarendonFSLight;
+    margin: 10px 0 10px;
+    text-align: left;
+}
+#folder h2 span {
+    float: right;
+}
+@font-face{
+    font-family: 'ClarendonFSLight';
+    src: url('/fonts/clarendonfs-light.eot?#iefix') format('embedded-opentype'),
+/*         url('/fonts/clarendonfs-light.woff') format('woff'),*/
+         url('/fonts/clarendonfs-light.ttf') format('truetype')/*,
+         url('/fonts/clarendonfs-light.svg#webfontI7XVJ1Zh') format('svg')*/
+}
+@font-face{
+    font-family: 'ClarendonFSBold';
+    src: url('/fonts/clarendonfs-bold.eot?#iefix') format('embedded-opentype'),
+/*         url('/fonts/clarendonfs-bold.woff') format('woff'),*/
+         url('/fonts/clarendonfs-bold.ttf') format('truetype')/*,
+         url('/fonts/clarendonfs-bold.svg#webfontI7XVJ1Zh') format('svg')*/
+}
+#search {
+    height: 45px;
+}
+#searchbar {
+    background-color: white;
+    margin: 9px 0px 6px 0;
+    border: 2px inset;
+    cursor: auto;
+    float: left;
+    width: 33%%;
+    height: 22px;
+    font-size: 14px;
+    padding-left: 4px;
+}
+#tags {
+    float: right;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    display: table;
+    width: 100%;
+    text-align: left;
+    font-size: 11px;
+    border-color: gray;
+    margin: 0 0 7px;
+    border-top: 1px solid #5A5050;
+    border-bottom: 1px solid #5A5050;
+    font-size: 16px;
+}
+thead {
+    display: table-header-group;
+    font-size: 14px;
+}
+th {
+    text-transform: uppercase;
+    padding: 6px 0px 6px 8px;
+    font-weight: bold;
+}
+td {
+    padding: 10px 0px 10px 8px;
+}
+tr {
+    display: table-row;
+    border-top: 1px dotted #B1AEAE;
+}
+tbody tr:hover {
+    background:url(/images/bg-tile-light.png) repeat left top
+}
+#result {
+}
+#result_info {
+    position: relative;
+    border-bottom: 1px solid #5A5050;
+    width: 100%;
+    text-align: left;
+}
+#result_info p {
+    padding: 10px 0px 10px 8px; 
+}
+#result_info p span {
+    font: normal 24px/1 ClarendonFSLight;
+}
+#pre_page_btn {
+    left: -54px;
+    position: absolute;
+    top: 9px;
+    background: transparent url(/images/sprite-arrows.png) no-repeat scroll left -22px;
+    cursor: pointer;
+    height: 22px;
+    text-indent: -3000em;
+    width: 16px;
+}
+#pre_page_btn:hover {
+    background: transparent url(/images/sprite-arrows.png) no-repeat scroll left 0px;
+}
+#next_page_btn {
+    background: transparent url(/images/sprite-arrows.png) no-repeat scroll -16px -22px;
+    cursor: pointer;
+    display: block;
+    position: absolute;
+    height: 22px;
+    width: 16px;
+    right: -54px;
+    top: 9px;
+    text-indent: -3000em;
+}
+#next_page_btn:hover {
+    background: transparent url(/images/sprite-arrows.png) no-repeat scroll -16px 0px;
+}
+

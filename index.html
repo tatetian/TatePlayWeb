@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html> 
 <head> 
-    <title>FeastMind -- Read, Manager and Share All Your Papers</title> 
+    <title>FeastMind -- Read, Manage and Share All Your Papers</title> 
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
     <link href="css/reset.css" rel="stylesheet" media="all" />
     <link href="css/manager.css" rel="stylesheet" media="all" />
@@ -9,6 +9,77 @@
     <script type="text/javascript" src="js/manager.js"></script>  
 </head> 
 <body>
-
+    <div id="viewport">
+        <div id="nav">
+            <ul>
+                <li><a href="#">My Library<span class="nip"></span></a></li>
+                <li class="logout_btn"><a href="#">Logout<span class="nip"></span></a></li>
+            </ul> 
+        </div>
+        <div id="loader">
+            <div id="add_file_btn">
+            </div>
+            <div id="help_btn">
+            </div>
+        </div>
+        <div id="folder">
+            <h2 id="folder_name">
+                All
+                <span>
+                    45
+                </span>
+            </h2>
+            <div id="folder_list">
+                <div id="more_folders">
+                    <div class="one_folder">
+                        Artificial Intelligence<span>10</span>
+                    </div>
+                    <div class="one_folder">
+                        Column Store<span>35</span>
+                    </div>
+                </div>
+                <span class="nip"></span> 
+            </div>
+        </div>
+        <div id="search">
+            <div>
+            <input id="searchbar" placeholder="SEARCH">
+            </input>
+            </div>
+            <div id="tags">
+                <p>1</p>
+            </div>
+        </div>
+        <div id="result">
+            <table id="result_table">
+                <thead>
+                    <tr>
+                        <th><span>Title</span></th>
+                        <th><span>Year</span></th>
+                        <th><span>Added On</span></th>
+                    </tr> 
+                </thead>
+                <tbody>
+                    <tr>
+                        <td width="*">Zephyr: Live Migration in Shared Nothing Databases for Elastic Cloud Platforms</td>
+                        <td width="150px">2011</td>
+                        <td width="150px">Last Wendesday</td>
+                    </tr>
+                    <tr>
+                        <td> Schedule Optimization for Data Processing Flows on the Cloud</td>
+                        <td>2011</td>
+                        <td>2011/10/08<td>
+                    </tr>
+                </tbody>
+            </table>
+            <div id="result_info">
+                <p><span>1 - 2</span> out of <span>2</span></p>
+                <div id="pre_page_btn">
+                </div>
+                <div id="next_page_btn">
+                </div>
+            </div>
+        </div>
+    </div>
 </body> 
 </html> 

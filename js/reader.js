@@ -104,9 +104,7 @@ var preloader = {
         if(preloader.onDoneLoad)
             preloader.onDoneLoad();
 
-        $("#preloader").delay(200).fadeOut(400,function() {
-            $("#top-panel").fadeTo(400, 0.5);
-        });
+        $("#preloader").delay(200).fadeOut(400);
     },
     onDoneLoad: undefined
 } ;

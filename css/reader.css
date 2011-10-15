@@ -1,6 +1,5 @@
 body {
-    background: transparent url(/images/noise.png) center center repeat;
-	background-color: #555555;
+    background: transparent url(/images/bg-tile-dark.png) repeat scroll center top;
     overflow: auto;
 }
 #top-panel {
@@ -146,24 +145,30 @@ body {
 }
 #next-page, #pre-page {
     top: 50%;
-    margin-top: -42px;
-    width: 29px;
-    height: 44px;
+    margin-top: -11px;
+    width: 16px;
+    height: 22px;
     position: fixed;
     overflow: hidden;
-    opacity: 0.5;
-	filter: alpha(opacity=50) ;
     cursor: pointer;
+    opacity: 0.4;
+	filter: alpha(opacity=40) ;
 }
 #next-page {
-	right: 0px ;
-    background-image: url("/images/right-arrow.png");
+	right: 8px ;
+    background: transparent url(/images/sprite-arrows.png) no-repeat scroll -16px -44px;
 }
 #pre-page {
-	left: 0px ;
-    background-image: url("/images/left-arrow.png");
+	left: 8px ;
+    background: transparent url(/images/sprite-arrows.png) no-repeat scroll left -44px;
 }
-#next-page:hover, #pre-page:hover {
+#next-page:hover {
+    background: transparent url(/images/sprite-arrows.png) no-repeat scroll -16px 0px;
+    opacity: 1.0;
+	filter: alpha(opacity=100) ;
+}
+#pre-page:hover {
+    background: transparent url(/images/sprite-arrows.png) no-repeat scroll left 0px;
     opacity: 1.0;
 	filter: alpha(opacity=100) ;
 }
@@ -219,6 +224,6 @@ body {
     left: 0px;
     top: 0px;
     height: 100%;
-    background-color: #4CC417;
     z-index:5;
+    background: transparent url(/images/bg-tile-light-green.png) repeat center top;
 }
