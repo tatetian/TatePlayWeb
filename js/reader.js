@@ -440,7 +440,7 @@ var reader = {
         reader.initPages();
         reader.initTextSelector();;
         reader.initEventHandlers();
-        reader.zoom(1.0);
+        reader.zoom(1.2);
     },
     initPages: function() {
         var pages = reader.pages;

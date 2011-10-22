@@ -1,6 +1,6 @@
 [
-    {"id": "all", "name": "All", "total_papers": 154},
+    {"id": "all", "name": "All", "total_papers": 153},
     {"id": "column_store", "name": "Column Store", "total_papers": 15},
-    {"id": "gpu", "name": "GPU", "total_papers": 7},
+    {"id": "gpu", "name": "GPU", "total_papers": 6},
     {"id": "virtualization", "name": "Virtulization", "total_papers": 132}
 ]

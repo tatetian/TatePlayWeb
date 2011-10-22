@@ -74,6 +74,40 @@ span.nip {
     position: relative;
     margin: 50px 0px 20px;
 }
+#loader_inner {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+#loader p {
+    text-align: left;
+    font-size: 20px;
+    padding: 10px 0px 6px 0px;
+    line-height: 150%;
+}
+#upload_tip{
+    display: none;    
+}
+#loader p strong {
+    font-style: italic;
+    color: #6EB3D1;
+}
+#loader p em {
+    font-style: italic;
+}
+#uploading_msg {
+    position: relative;
+}
+#done_upload_msg {
+    position: relative;
+}
+#uploading_progress {
+    position: absolute;
+    width: 0%;    
+    height: 45px;
+    background: transparent url(/images/bg-tile-light-green.png) repeat center top;
+    z-index: -1;
+}
 #add_file_btn {
     left: -57px;
     position: absolute;

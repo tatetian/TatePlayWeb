@@ -1,11 +1,7 @@
 {
-    "total_papers": 7,
+    "total_papers": 6,
     "papers": [
         {
-            "title":"Accelerating SQL Database Operations on a GPU with CUDA",
-            "year":"2010",
-            "addedOn":"Last Friday"
-        },{
             "title":"Hardware acceleration in commercial databases: a case study of spatial operations",
             "year":"2004",
             "addedOn":"Last Wednesday"
