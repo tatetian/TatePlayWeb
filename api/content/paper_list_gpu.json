@@ -1,0 +1,34 @@
+{
+    "total_papers": 7,
+    "papers": [
+        {
+            "title":"Accelerating SQL Database Operations on a GPU with CUDA",
+            "year":"2010",
+            "addedOn":"Last Friday"
+        },{
+            "title":"Hardware acceleration in commercial databases: a case study of spatial operations",
+            "year":"2004",
+            "addedOn":"Last Wednesday"
+        },{
+            "title":"A performance study of general-purpose applications on graphics processors using cuda",
+            "year":"2008",
+            "addedOn":"Last Wednesday"
+        },{
+            "title":"Mars: a mapreduce framework on graphics processors",
+            "year":"2008",
+            "addedOn":"Last Wednesday"
+        },{
+            "title":"Data monster: Why graphics processors will transform database processing",
+            "year":"2009",
+            "addedOn":"Last Tuesday"
+        },{
+            "title":"Openmp to gpgpu: a compiler framework for automatic translation and optimization.",
+            "year":"2009",
+            "addedOn":"Last Tuesday"
+        },{
+            "title":"Cuda-lite: Reducing gpu programming complexity",
+            "year":"2008",
+            "addedOn":"Last Monday"
+        }
+    ]
+}

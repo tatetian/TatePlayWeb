@@ -117,7 +117,7 @@ span.nip {
     width: 939px;
     color: white;
     z-index: 5;
-    height: 60px;
+    height: 120px;
     display: none;
     overflow: visible;
 }
@@ -132,12 +132,14 @@ span.nip {
     -webkit-border-bottom-right-radius: 5px;
     border-bottom-left-radius: 5px 5px;
     border-bottom-right-radius: 5px 5px;
+    cursor: pointer;
 }
 #more_folders .one_folder {
     font: normal 20px/1 ClarendonFSLight;
     text-align: left;
-    padding: 4px 0px 4px 0px;
+    padding: 4px 8px 4px 8px;
     border-top: 1px solid white;
+    line-height: 150%;
 }
 #more_folders .one_folder:hover {
     background:url(/images/bg-tile-dark-hover.png) repeat left top;color:#fff
@@ -213,11 +215,16 @@ thead {
 }
 th {
     text-transform: uppercase;
-    padding: 6px 0px 6px 8px;
-    font-weight: bold;
+    padding: 12px 0px 12px 8px;
+    font-style: italic;
 }
 td {
     padding: 10px 0px 10px 8px;
+    vertical-align: middle;
+    line-height: 150%;
+}
+.title {
+    font-weight: bold;
 }
 tr {
     display: table-row;

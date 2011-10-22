@@ -1,0 +1,66 @@
+{
+    "total_papers": 15,
+    "papers": [
+        {
+            "title":"Parallel Database Systems:The Future of High Performance Database Processing",
+            "year":"1992",
+            "addedOn":"Two Weeks Ago"
+        },{
+            "title":"One Size Fits All Database Architectures Do Not Work for DSS",
+            "year":"1995",
+            "addedOn":"Two Weeks Ago"
+        },{
+            "title":"DynaMat: A Dynamic View Management System for Data Warehouses",
+            "year":"1999",
+            "addedOn":"Two Weeks Ago"
+        },{
+            "title":"ARIES: A Transaction Recovery Method Supporting Fine-granularity Locking and Partial Rollbacks Using Write-ahead Logging",
+            "year":"1992",
+            "addedOn":"Two Weeks Ago"
+        },{
+            "title":"The Log-Structured Merge-Tree",
+            "year":"1996",
+            "addedOn":"Two Weeks Ago"
+        },{
+            "title":"Improved Query Performance with Variant Indexes",
+            "year":"1997",
+            "addedOn":"2011/09/30"
+        },{
+            "title":"Query execution in column-oriented database systems",
+            "year":"2008",
+            "addedOn":"2011/09/30"
+        },{
+            "title":"MonetDB/X100 - A DBMS In The CPU Cache",
+            "year":"2005",
+            "addedOn":"2011/09/28"
+        },{
+            "title":"A case for fractured mirrors",
+            "year":"2002",
+            "addedOn":"2011/09/20"
+        },{
+            "title":"The Star Schema Benchmark (SSB)",
+            "year":"",
+            "addedOn":"2011/09/19"
+        },{
+            "title":"Block oriented processing of relational database operations in modern computer architectures",
+            "year":"2001",
+            "addedOn":"2011/09/19"
+        },{
+            "title":"Multi-table joins through bitmapped join indices",
+            "year":"1995",
+            "addedOn":"2011/09/10"
+        },{
+            "title":"Monet: A Next-Generation DBMS Kernel for Query-Intensive Applications",
+            "year":"2002",
+            "addedOn":"2011/08/25"
+        },{
+            "title":"The Case for Shared Nothing",
+            "year":"1986",
+            "addedOn":"2011/08/10"
+        },{
+            "title":"C-Store: A Column-oriented DBMS",
+            "year":"2005",
+            "addedOn":"2011/08/07"
+        }
+    ]
+}
