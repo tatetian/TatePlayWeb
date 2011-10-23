@@ -175,6 +175,32 @@ span.nip {
     border-top: 1px solid white;
     line-height: 150%;
 }
+#view_btn {
+    position: absolute;
+    border: none;
+    color: white;
+    font-family: Helvetica,Arial;
+    font-size: 10px;
+    display: none;
+    width: 65px;
+    z-index: 50;
+    padding: 7px 0 7px 0;
+}
+#view_btn a{
+    float: right;
+    background: url(/images/bg-tile-dark.png) repeat center top;
+    display: block;
+    -moz-border-radius: 0 0 5px 5px;
+    text-transform: uppercase;
+    -webkit-border-radius: 5px;
+    height: 10px;
+    padding: 3px 8px 4px 8px;
+    border-bottom-radius: 5px 5px;
+    cursor: pointer;
+}
+#result:hover #view_btn {
+    display: block;
+}
 #more_folders .one_folder:hover {
     background:url(/images/bg-tile-dark-hover.png) repeat left top;color:#fff
 }
@@ -263,6 +289,9 @@ td {
 tr {
     display: table-row;
     border-top: 1px dotted #B1AEAE;
+}
+tbody {
+    position: relative;
 }
 tbody tr:hover {
     background:url(/images/bg-tile-light.png) repeat left top

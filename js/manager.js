@@ -84,12 +84,20 @@ var manager = {
             $tbody.fadeOut(function() {
                 $tbody.empty();
                 $tbody.append($(tbodyhtml));
-                $tbody.fadeIn();   
+                $tbody.fadeIn(400, function() {
+                    $("#result_table tbody tr").mouseenter(function() {
+                        var tr_pos = $(this).position() ;
+                        var h = $(this).height();
+                        var w = $(this).width();                        
+                        $("#view_btn").css("left", tr_pos.left + w)
+                                      .css("top", tr_pos.top + h/2 - 15);
+                    });
+                });   
             });
             $("#papers_from_to").html((page*10+1) + " - " + l);
-            $("#total_papers").html(data.total_papers+"");
-
-            $("#pre_page_btn")
+            var extra_paper = (uploader.uploaded && (manager.current_folder.id=="gpu" || manager.current_folder.id=="all"))? 1 : 0;
+            $("#total_papers").html((data.total_papers+extra_paper)+"");
+            
         }, "json");
     },
     prePage: function() {
@@ -127,9 +135,9 @@ var uploader = {
         droparea.addEventListener("drop", uploader.drop, false);
 
         $("#add_file_btn").mouseenter(function() {
-            $("#upload_tip").toggle();
+            $("#upload_tip").fadeIn();
         }).mouseleave(function() {
-            $("#upload_tip").toggle();
+            $("#upload_tip").delay(1500).fadeOut();
         });
     },
     noOpHandler: function(e) {
