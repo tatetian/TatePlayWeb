@@ -119,8 +119,19 @@ span.nip {
     text-indent: -3000em;
     width: 22px;
 }
+#add_file_btn input {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    z-index: 5;
+    width: 22px;
+    height: 100px;
+    opacity: 0;
+    cursor: pointer;
+}
 #add_file_btn:hover {
     background: url(/images/sprite-cross.png) no-repeat -44px top;
+    cursor: pointer;
 }
 #help_btn {
     background: url(/images/sprite-btn-help.png) no-repeat -15px top;
@@ -178,7 +189,6 @@ span.nip {
 #view_btn {
     position: absolute;
     border: none;
-    color: white;
     font-family: Helvetica,Arial;
     font-size: 10px;
     display: none;
@@ -197,6 +207,7 @@ span.nip {
     padding: 3px 8px 4px 8px;
     border-bottom-radius: 5px 5px;
     cursor: pointer;
+    color: white;
 }
 #result:hover #view_btn {
     display: block;

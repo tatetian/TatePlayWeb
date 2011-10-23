@@ -139,6 +139,10 @@ var uploader = {
         }).mouseleave(function() {
             $("#upload_tip").delay(1500).fadeOut();
         });
+
+        $("#add_file_btn input").bind("change", function(e) {
+            uploader.uploadFiles(e.target.files);
+        }) ;
     },
     noOpHandler: function(e) {
         e.stopPropagation();
@@ -146,14 +150,15 @@ var uploader = {
     },
     drop: function(e) {
         uploader.noOpHandler(e);
-
-        var files = e.dataTransfer.files;
+        uploader.uploadFiles(e.dataTransfer.files);
+    },
+    uploadFiles: function(files) {
         var count = files.length;
 
         for(var i = 0; i < count; ++i) {
             var file = files[i];
             uploader.upload(file);
-        }            
+        }
     },
     upload: function(file) {
         var reader = new FileReader();

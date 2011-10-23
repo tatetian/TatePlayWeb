@@ -199,11 +199,12 @@ var textSelector = {
 	selectingPrecision: 6,	// text selection precision
     selectedText: undefined,
     lastSelectionTime: new Date().getTime(),*/
+    durable: false,
     selectedText: null,
+    lastSelection: null,
     init: function(conf) {
         $.extend(textSelector, conf);
-
-            },
+    },
     selectWord: function(blocks, x, y) {
         var position = textSelector.findWord(blocks, x, y);
         if (!position)
@@ -250,12 +251,28 @@ var textSelector = {
     },
     highlightArea: function(block) {
         var f = reader.zoomFactor;
-        $('<div class="selected-area"></div>')
+        $(!reader.ctrlPressed?
+            '<div class="selected-area temp-area"></div>':
+            '<div class="highlight-area'+(textSelector.durable?'':' temp-area')+'"></div>')
             .css('left', block.l * f )
             .css('top', block.t * f )
             .width((block.r - block.l)*f)
             .height((block.b - block.t)*f)
-            .appendTo('#viewport');
+            .appendTo('#viewport ul li:nth-child('+reader.currentPage+')');
+    },
+    confirmSelection: function() {
+        if (!textSelector.lastSelection)
+            return;
+        textSelector.durable = true;
+        textSelector.selectText(
+                  textSelector.lastSelection.b, 
+                  textSelector.lastSelection.x1, 
+                  textSelector.lastSelection.y1,
+                  textSelector.lastSelection.x2,
+                  textSelector.lastSelection.y2,
+                  textSelector.lastSelection.op); 
+        textSelector.durable = false;
+        textSelector.lastSelection = null;
     },
     localPos: function($container, pageX, pageY) {
         var originPageX = $container.offset().left ;
@@ -263,6 +280,11 @@ var textSelector = {
         return {x: pageX - originPageX, y: pageY - originPageY} ;
     },
     selectText: function(blocks, startX, startY, endX, endY, operationOnSelectedText) {
+        textSelector.lastSelection = {
+            "b": blocks, "x1": startX, "y1": startY, "x2": endX, "y2": endY, "op": operationOnSelectedText
+        } ;
+
+        $('.temp-area').remove();
         var f = reader.zoomFactor;
         // tranform the coordinates according to zoomFactor
         var left = ( ( startX < endX ? startX : endX )  )/  f ;
@@ -428,6 +450,8 @@ var reader = {
 	totalWidth: undefined,
     // To animate the scrollbar of the browser, we have to deal with different browsers
     scrollOwner: $.browser.msie || $.browser.mozilla || $.browser.opera ? "html" : "body",
+    ctrlPressed: false,
+    shiftPressed: false,
     init: function(data) {
         $.extend(reader, data);
         topbar.init({
@@ -456,18 +480,17 @@ var reader = {
 
         $("#viewport").mousedown(function(e) {
             $(".selected-area").remove();
-
             var localOriginPos = textSelector.localPos($(this), e.pageX, e.pageY) ;
             $("#viewport").mousemove(localOriginPos, function(e) {
                 var localNowPos = localPos($(this), e.pageX, e.pageY) ;
                 var localOriginPos = e.data ;
                 var blocks = reader.pages[reader.currentPage-1].blocks;
-                $(".selected-area").remove();
                 textSelector.selectText(blocks, localOriginPos.x, localOriginPos.y, localNowPos.x, localNowPos.y) ;
             }) ;
         }).mouseup(function(e) {
             $(this).css("cursor", "text");
             $(this).unbind("mousemove");
+            textSelector.confirmSelection();
         }).dblclick(function(e) {// double click to select a word
             var localNowPos = textSelector.localPos($(this), e.pageX, e.pageY);
             var x = localNowPos.x;
@@ -516,7 +539,7 @@ var reader = {
     },
     goToPage: function(pageNum) {
         if (reader.currentPage != pageNum)
-            $(".selected-area").remove();
+            $(".temp-area").remove();
         reader.currentPage = pageNum;
         $("#page-container").css("marginLeft", reader.calPageOffset());
         topbar.goToPage(pageNum);
@@ -526,7 +549,7 @@ var reader = {
             return ;
         reader.currentPage ++;
         var offset = reader.calPageOffset();
-        $(".selected-area").remove();
+        $(".temp-area").remove();
         $("#page-container").stop().animate({"marginLeft": offset});
         reader.scrollTo(0);
         topbar.nextPage();
@@ -536,7 +559,7 @@ var reader = {
             return ;
         }
         reader.currentPage --;
-        $(".selected-area").remove();
+        $(".temp-area").remove();
         var offset = reader.calPageOffset();
         reader.scrollTo(0);
         $("#page-container").stop().animate({"marginLeft": offset});
@@ -555,7 +578,7 @@ var reader = {
     },
     initKeyboardEventHandler: function() {
         $(document).keydown(function(e) {
-            var ctrlKey = 17, cKey = 67, pgUpKey = 33, pgDnKey = 34;
+            var ctrlKey = 17, shiftKey = 16,cKey = 67, pgUpKey = 33, pgDnKey = 34;
             var ltKey = 37, rtKey = 39, upKey = 38, dnKey = 40;
             if(e.keyCode == pgUpKey) {
                 if($(window).scrollTop() > 0) {
@@ -597,7 +620,20 @@ var reader = {
                 $(window).scrollTop($(window).scrollTop()+12);
                 e.preventDefault();
             }
+            else if(e.keyCode == ctrlKey) {
+                reader.ctrlPressed = true;
+            }
+            else if(e.keyCode == shiftKey) {
+                reader.shiftPressed = true;
+            }
         }).keyup(function(e) {
+            var ctrlKey = 17, shiftKey = 16;
+            if(e.keyCode == ctrlKey) {
+                reader.ctrlPressed = false;
+            }
+            else if(e.keyCode == shiftKey) {
+                reader.shiftPressed = false;
+            }
         }) ;
     }
 } ;
@@ -978,13 +1014,13 @@ function addEventHandlerToControls() {
 	$('#next-page').click(function() {
 		if( ($(this).attr("id") == "next-page" && reader.pageNum  == reader.pages) )	// no next page
 			return ;
-		$(".selected-area").remove();
+		$(".temp-area").remove();
 		loadPage(reader.docId, reader.pageNum + 1) ;
 	}) ;
 	$('#pre-page').click(function() {
 		if( ($(this).attr("id") == "pre-page" && reader.pageNum == 1)	) // no previous page
 			return ;
-		$(".selected-area").remove();
+		$(".temp-area").remove();
 		loadPage(reader.docId, reader.pageNum - 1) ;
 	}) ;
 }
