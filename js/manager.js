@@ -1,5 +1,40 @@
+var uploader; 
 $(document).ready(function() {
     manager.init();
+    //uploader.init();
+    uploader = new plupload.Uploader({
+        runtimes : 'html5,flash,html4',
+        browse_button : 'add_file_btn',
+        container: 'loader',
+        drop_element: 'body',
+        max_file_size : '10mb',
+        url : '/upload.php',
+        flash_swf_url : '/js/plupload.flash.swf',
+        filters : [
+            {title : "PDF files", extensions : "pdf"}
+        ]
+    });
+
+    uploader.bind('Init', function(up, params) {
+        console.log('init');
+    });
+
+    uploader.bind('FilesAdded', function(up, files) {
+        console.log('filesadded');
+    });
+
+    uploader.bind('UploadProgress', function(up, file) {
+        console.log('uploadprogress');
+    });
+
+    uploader.bind('QueueChanged', function() {
+        console.log('queuechanged');
+    });
+
+    uploader.bind('UploadComplete', function() {
+        console.log('uploadcomplete');
+    });
+
     uploader.init();
 });
 var manager = {
@@ -115,6 +150,7 @@ var manager = {
         }
     }
 };
+/*
 var uploader = {
     droparea: $.browser.msie || $.browser.mozilla || $.browser.opera ? "html" : "body",
     uploadedPaper: {
@@ -186,4 +222,5 @@ var uploader = {
              }
         });
     }
-};
+};*/
+
