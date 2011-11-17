@@ -8,6 +8,8 @@
  * License: http://www.plupload.com/license
  * Contributing: http://www.plupload.com/contributing
  */
+include_once('fm_common.php');
+include_once('fm_uuid.php');
 
 // HTTP headers for no cache etc
 header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
@@ -18,7 +20,7 @@ header("Pragma: no-cache");
 
 // Settings
 //$targetDir = ini_get("upload_tmp_dir") . DIRECTORY_SEPARATOR . "plupload";
-$targetDir = 'uploads';
+$targetDir = '../uploads';
 
 //$cleanupTargetDir = false; // Remove old files
 //$maxFileAge = 60 * 60; // Temp file age in seconds
@@ -30,10 +32,10 @@ $targetDir = 'uploads';
 // usleep(5000);
 
 // Get parameters
-$chunk = isset($_REQUEST["chunk"]) ? $_REQUEST["chunk"] : 0;
-$chunks = isset($_REQUEST["chunks"]) ? $_REQUEST["chunks"] : 0;
-$fileName = isset($_REQUEST["name"]) ? $_REQUEST["name"] : '';
-
+//$chunk = isset($_REQUEST["chunk"]) ? $_REQUEST["chunk"] : 0;
+//$chunks = isset($_REQUEST["chunks"]) ? $_REQUEST["chunks"] : 0;
+//$fileName = isset($_REQUEST["name"]) ? $_REQUEST["name"] : '';
+/*
 // Clean the fileName for security reasons
 $fileName = preg_replace('/[^\w\._]+/', '', $fileName);
 
@@ -49,10 +51,10 @@ if ($chunks < 2 && file_exists($targetDir . DIRECTORY_SEPARATOR . $fileName)) {
 
 	$fileName = $fileName_a . '_' . $count . $fileName_b;
 }
-
+ */
 // Create target dir
-if (!file_exists($targetDir))
-	@mkdir($targetDir);
+//if (!file_exists($targetDir))
+//	@mkdir($targetDir);
 
 // Remove old temp files
 /* this doesn't really work by now
@@ -74,51 +76,36 @@ if (is_dir($targetDir) && ($dir = opendir($targetDir))) {
 // Look for the content type header
 if (isset($_SERVER["HTTP_CONTENT_TYPE"]))
 	$contentType = $_SERVER["HTTP_CONTENT_TYPE"];
-
 if (isset($_SERVER["CONTENT_TYPE"]))
 	$contentType = $_SERVER["CONTENT_TYPE"];
 
 // Handle non multipart uploads older WebKit versions didn't support multipart in HTML5
 if (strpos($contentType, "multipart") !== false) {
-	if (isset($_FILES['file']['tmp_name']) && is_uploaded_file($_FILES['file']['tmp_name'])) {
-		// Open temp file
-		$out = fopen($targetDir . DIRECTORY_SEPARATOR . $fileName, $chunk == 0 ? "wb" : "ab");
-		if ($out) {
-			// Read binary input stream and append it to temp file
-			$in = fopen($_FILES['file']['tmp_name'], "rb");
-
-			if ($in) {
-				while ($buff = fread($in, 4096))
-					fwrite($out, $buff);
-			} else
-				die('{"jsonrpc" : "2.0", "error" : {"code": 101, "message": "Failed to open input stream."}, "id" : "1", "path":'. $targetDir. '/' . $fileName . '}');
-			fclose($in);
-			fclose($out);
-			@unlink($_FILES['file']['tmp_name']);
-		} else
-			die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Failed to open output stream."}, "id" : "2", "path":"'. $targetDir. '/' . $fileName . '"}');
-	} else
-		die('{"jsonrpc" : "2.0", "error" : {"code": 103, "message": "Failed to move uploaded file."}, "id" : "3"}');
-} else {
-	// Open temp file
-	$out = fopen($targetDir . DIRECTORY_SEPARATOR . $fileName, $chunk == 0 ? "wb" : "ab");
-	if ($out) {
-		// Read binary input stream and append it to temp file
-		$in = fopen("php://input", "rb");
-
-		if ($in) {
-			while ($buff = fread($in, 4096))
-				fwrite($out, $buff);
-		} else
-			die('{"jsonrpc" : "2.0", "error" : {"code": 101, "message": "Failed to open input stream."}, "id" : "4"}');
-
-		fclose($in);
-		fclose($out);
-	} else
-		die('{"jsonrpc" : "2.0", "error" : {"code": 102, "message": "Failed to open output stream."}, "id" : "5"}');
+    $tempFilePath = $_FILES['file']['tmp_name'];
+    if (isset($tempFilePath) && is_uploaded_file($tempFilePath)) {
+        // Get the content of the file
+        $content = '';
+        $in = fopen($tempFilePath, "rb");
+        if ($in) {
+            while ($buff = fread($in, 4096))
+                $content .= $buff;
+        }
+        fclose($in);
+        // Cal the uuid
+        $uuid = cal_fm_uuid(FM_UUID_NAMESPACE, $content);
+        // Set the file path
+        $fileName = $uuid . '.pdf';
+        $filePath = $targetDir . DIRECTORY_SEPARATOR . $fileName;
+        if (file_exists($filePath))
+            fm_succeed("The uploaded file exists on server");
+        // Move it to the new place
+        if (move_uploaded_file($tempFilePath, $filePath))
+            fm_succeed("Uploading is done");
+        fm_fail("101", "Unable to move the uploaded file");
+    }
+    else
+        fm_fail("102", "No uploaded file");
 }
-
-// Return JSON-RPC response
-die('{"jsonrpc" : "2.0", "result" : null, "id" : "5"}');
-
+else
+    fm_fail("103", "Form/multipart expected");
 ?>

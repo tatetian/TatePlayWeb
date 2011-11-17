@@ -8,7 +8,7 @@ $(document).ready(function() {
         container: 'loader',
         drop_element: 'body',
         max_file_size : '10mb',
-        url : '/upload.php',
+        url : '/api/upload.php',
         flash_swf_url : '/js/plupload.flash.swf',
         filters : [
             {title : "PDF files", extensions : "pdf"}

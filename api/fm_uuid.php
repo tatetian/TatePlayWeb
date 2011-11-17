@@ -66,5 +66,5 @@ function _fm_uuid_test() {
     fclose($in);
 }
 
-_fm_uuid_test() ;
+//_fm_uuid_test() ;
 ?>
