@@ -2,11 +2,20 @@
 
 define('FM_UUID_NAMESPACE', '{00000000-0000-0000-0000-000000000000}');
 
-function cal_fm_uuid($namespace, $name) {
-    if(!_uuid_is_valid($namespace)) return false;
+function fm_doc2png($doc_file, $output_dir) {
+    $output = array();
+    $return_var = 0;
+    $cmd = "../tools/pdf2png $doc_file 150 \"$output_dir\"";
+    exec($cmd, $output, $return_var);
+    return !$return_var;
+}
 
+function fm_doc2json($doc_file) {
+}
+
+function fm_doc_uuid($doc_content) {
     // Get hexadecimal components of namespace
-    $nhex = str_replace(array('-','{','}'), '', $namespace);
+    $nhex = str_replace(array('-','{','}'), '', FM_UUID_NAMESPACE);
 
     // Binary Value
     $nstr = '';
@@ -17,7 +26,7 @@ function cal_fm_uuid($namespace, $name) {
     }
 
     // Calculate hash value
-    $hash = sha1($nstr . $name);
+    $hash = sha1($nstr . $doc_content);
 
     $hash = sprintf('%08s%04s%04x%04x%12s',
         // 32 bits for "time_low"
@@ -51,18 +60,13 @@ function cal_fm_uuid($namespace, $name) {
     return $hash;
 }
 
-function _uuid_is_valid($uuid) {
-    return preg_match('/^\{?[0-9a-f]{8}\-?[0-9a-f]{4}\-?[0-9a-f]{4}\-?'.
-                  '[0-9a-f]{4}\-?[0-9a-f]{12}\}?$/i', $uuid) === 1;
-}
-
 function _fm_uuid_test() {
     $in = fopen("tools/a.pdf", "r");
     $content = '';
     while($buff = fread($in, 4096)) {
         $content .= $buff;
     }
-    print cal_fm_uuid(FM_UUID_NAMESPACE, $content) . "\n";
+    print fm_doc_uuid($content) . "\n";
     fclose($in);
 }
 

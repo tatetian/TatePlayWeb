@@ -9,7 +9,7 @@
  * Contributing: http://www.plupload.com/contributing
  */
 include_once('fm_common.php');
-include_once('fm_uuid.php');
+include_once('fm_doc.php');
 
 // HTTP headers for no cache etc
 header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
@@ -20,7 +20,7 @@ header("Pragma: no-cache");
 
 // Settings
 //$targetDir = ini_get("upload_tmp_dir") . DIRECTORY_SEPARATOR . "plupload";
-$targetDir = '../uploads';
+$uploadDir = '../uploads';
 
 //$cleanupTargetDir = false; // Remove old files
 //$maxFileAge = 60 * 60; // Temp file age in seconds
@@ -92,15 +92,21 @@ if (strpos($contentType, "multipart") !== false) {
         }
         fclose($in);
         // Cal the uuid
-        $uuid = cal_fm_uuid(FM_UUID_NAMESPACE, $content);
+        $uuid = fm_doc_uuid(FM_UUID_NAMESPACE, $content);
         // Set the file path
-        $fileName = $uuid . '.pdf';
-        $filePath = $targetDir . DIRECTORY_SEPARATOR . $fileName;
-        if (file_exists($filePath))
+        $targetDir = $uploadDir .DIRECTORY_SEPARATOR . $uuid ;
+        $pdfFilePath = $targetDir . DIRECTORY_SEPARATOR . $uuid . ".pdf";
+        if (file_exists($targetDir))
             fm_succeed("The uploaded file exists on server");
+        @mkdir($targetDir);
         // Move it to the new place
-        if (move_uploaded_file($tempFilePath, $filePath))
-            fm_succeed("Uploading is done");
+        if (move_uploaded_file($tempFilePath, $pdfFilePath) && chmod($pdfFilePath, 0777)) {
+            if (fm_doc2png($pdfFilePath, $targetDir)) {
+                fm_succeed("Uploading is done");
+            }
+            else
+                fm_fail("104", "Unable to generate images");
+        }
         fm_fail("101", "Unable to move the uploaded file");
     }
     else
