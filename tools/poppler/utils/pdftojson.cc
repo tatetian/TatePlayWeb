@@ -204,15 +204,18 @@ int main(int argc, char *argv[])
   {
 
     if(argPlainText) {
-      printf("Title: %s\nAuthor: %s\n",
+      printf("Title: %s\nAuthor: %s\nModDate: %s\n",
           docTitle->getCString(),
-          author? author->getCString():"") ;
+          author? author->getCString():"", 
+          date? date->getCString():"") ;
     }
     else {
       escapeJsonString(docTitle);
       if(author) escapeJsonString(author);
-      printf("{\"docId\":1, \"title\":\"%s\", \"author\":\"%s\",\n",
-              docTitle->getCString(), author? author->getCString():"");
+      printf("{\"doc_id\": \"\", \"title\":\"%s\", \"author\":\"%s\",\"mod_date\":\"%s\",\n",
+              docTitle->getCString(), 
+              author? author->getCString():"", 
+              date? date->getCString():"");
       printf("\"pages\":[\n");
     }
 

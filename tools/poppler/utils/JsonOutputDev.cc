@@ -28,7 +28,7 @@ void escapeJsonString(GooString* str) {
 ExtractedString::ExtractedString(GfxState *state, double fontSize)
   :RectArea(),
    unicodes(NULL),
-   size(0), capacity(1),//TO-DO: figure out why malloc fails when capacity is initialized as 8
+   size(0), capacity(8),//TO-DO: figure out why malloc fails when capacity is initialized as 8
    nextStr(NULL),
    x(0), y(0),
    charAvgSpace(0),charAvgWidth(0)
@@ -120,11 +120,11 @@ void ExtractedString::append(const ExtractedString& another)
   int newSize = size + another.size;
   if (capacity < newSize) {
     unicodes = (Unicode*) grealloc(
-        unicodes, sizeof(Unicode) * (newSize+16));
+        unicodes, sizeof(Unicode) * (newSize + 16));
+    capacity = newSize + 16;
   }
   memcpy(unicodes+size, another.unicodes, sizeof(Unicode) * another.size) ;
-  size += another.size;
-  capacity = newSize + 16;
+  size = newSize;
 
   updateBox(another);
 }
@@ -180,6 +180,14 @@ ExtractedParagraph::ExtractedParagraph()
 
 ExtractedParagraph::~ExtractedParagraph()
 {
+  if(blocks) {
+    ExtractedBlock *b1, *b2;
+     for(b1 = blocks; b1; b1 = b2) {
+       b2 = b1->getNextBlock();
+       delete b1;
+     }
+     blocks = NULL;
+  }
 }
 
 void ExtractedParagraph::addBlock(ExtractedBlock* block)
@@ -191,6 +199,7 @@ void ExtractedParagraph::addBlock(ExtractedBlock* block)
   else {
     blocks = curBlock = block;
   }
+  // TO-DO: why set to NULL?
   curBlock->setNextBlock(NULL);
   ++size;
 }
@@ -211,7 +220,6 @@ void JsonOutputDev::startPage(int pageNum, GfxState *state) {
 
   this->pageWidth=static_cast<int>(state->getPageWidth());
   this->pageHeight=static_cast<int>(state->getPageHeight());
-
 //  printf("startPage: pageNum=%d, pageWidth=%d, pageHeight=%d\n",
 //      pageNum, this->pageWidth, this->pageHeight) ;
 }
@@ -384,24 +392,23 @@ bool JsonOutputDev::areTwoStringSeparate(
 }
 
 void JsonOutputDev::clear() {
-  ExtractedString *p1, *p2;
-  ExtractedBlock *b1, *b2;
-
-  if (curStr) {
-    delete curStr;
-    curStr = NULL;
+  if(paragraphs) {
+    ExtractedParagraph *p1, *p2;
+     for(p1 = paragraphs; p1; p1 = p2) {
+       p2 = p1->getNextPara();
+       delete p1;
+     }
+     paragraphs = NULL;
   }
+
+  ExtractedString *p1, *p2;
   for (p1 = strings; p1; p1 = p2) {
     p2 = p1->nextStr;
     delete p1;
   }
+  curStr = NULL;
   strings = NULL;
   lastStr = yxCur2 = NULL;
-
-  for (b1 = blocks; b1; b1 = b2) {
-    b2 = b1->getNextBlock();
-    delete b1;
-  }
 }
 
 void JsonOutputDev::updateFont(GfxState *state) {
