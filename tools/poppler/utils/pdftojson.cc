@@ -212,6 +212,7 @@ int main(int argc, char *argv[])
     else {
       escapeJsonString(docTitle);
       if(author) escapeJsonString(author);
+      if(date) escapeJsonString(date);
       printf("{\"doc_id\": \"\", \"title\":\"%s\", \"author\":\"%s\",\"mod_date\":\"%s\",\n",
               docTitle->getCString(), 
               author? author->getCString():"", 

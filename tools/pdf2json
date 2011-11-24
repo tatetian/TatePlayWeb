@@ -1,1 +1,4 @@
-poppler/utils/pdftojson
+#!/bin/sh
+# this script convert a pdf to its json format with metadata
+# $1 is the input PDF file
+./poppler/utils/pdftojson $1 | python pdfmeta/addmeta.py

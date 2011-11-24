@@ -18,12 +18,13 @@ class PdfMeta:
         shared = {}
         self._extract_title(meta, shared)
         self._extract_authors(meta, shared)
+        self._extract_date(meta, shared)
         self._pdf_json['meta'] = meta
         return self._pdf_json
     def json(self):
         return self._pdf_json
     def __str__(self):
-        return str(self._pdf_json)
+        return json.dumps(self._pdf_json)#, indent=2)
     def _extract_title(self, meta, shared):
         # assume the title is on the first page
         first_page = self._pdf_json['pages'][0]
@@ -129,6 +130,11 @@ class PdfMeta:
                 continue
             min_space = min(space, min_space)
         return author_names
+    def _extract_date(self, meta, shared):
+        if not self._pdf_json.has_key('mod_date'):
+            return
+        mod_date = self._pdf_json['mod_date']   # format like '2007-11-13'
+        meta['date'] = mod_date[:4] + mod_date[5:7] + mod_date[8:10]  
 
 import unittest
 import subprocess
