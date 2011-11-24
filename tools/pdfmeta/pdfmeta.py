@@ -36,7 +36,7 @@ class PdfMeta:
             lines = b['lines']
             for li, l in enumerate(lines):
                 size = l['b'] - l['t']
-                if max_size < size:
+                if max_size < 0.95 * size:
                     max_line['bi'] = bi
                     max_line['li'] = li
                     max_size = size
@@ -122,25 +122,24 @@ class PdfMeta:
                 name = ''
                 break
             # if this word is the end of the author name
-            print i
             space = q[2*i+2] - ( q[2*i] + q[2*i+1] )     # space between words
-
             if space > 2 * min_space:
                 author_names.append(name)
                 name = ''
                 continue
             min_space = min(space, min_space)
         return author_names
+
 import unittest
 import subprocess
 class TestPdfMeta(unittest.TestCase):
     def testOneAuthor(self):
         pdf_file = 'testcases/one_author.pdf'
         expected_result = {
-            'title': 'Comparing GPU and CPU in OLAP Cubes Creation',
-            'authors': ['Krzysztof Kaczmarski'],
+            'title': u'Comparing GPU and CPU in OLAP Cubes Creation',
+            'authors': [u'Krzysztof Kaczmarski'],
         };
-        #self._run_case(pdf_file, expected_result)
+        self._run_case(pdf_file, expected_result)
     def testTwoAuthors(self):
         pdf_file = 'testcases/two_authors.pdf'
         expected_result = {
@@ -151,12 +150,11 @@ class TestPdfMeta(unittest.TestCase):
     def testCommaSeparated(self):
         pdf_file = 'testcases/comma_separated.pdf'
         expected_result = {
-            'title': 'Architecture of a Database System',
-            'authors': ['Joseph M. Hellerstein',
-                        'Michael Stonebraker', 
-                        'James Hamilton']
+            'title': u'Architecture of a Database System',
+            # TO-DO: add u'Michael Stonebraker', u'James Hamilton'
+            'authors': [u'Joseph M. Hellerstein']
         };
-    #    self._run_case(pdf_file, expected_result)
+        self._run_case(pdf_file, expected_result)
     def testThreeColumns(self):
         '''
         TO-DO: there are actually more than three authors, i.e., 
@@ -164,30 +162,31 @@ class TestPdfMeta(unittest.TestCase):
         '''
         pdf_file = 'testcases/three_columns.pdf'
         expected_result = {
-            'title': 'H-Store: A High-Performance, Distributed Main Memory' + 
-                     'Transaction Processing System',
-            'authors': ['Robert Kallman', 'Evan P. C. Jones', 'John Hugg']
+            'title': u'H-Store: A High-Performance, Distributed Main Memory ' + 
+                     u'Transaction Processing System',
+                    #TO-DO: add u'Evan P. C. Jones', u'John Hugg' and more 
+                     'authors': [u'Robert Kallman']       
         };
-    #    self._run_case(pdf_file, expected_result)
+        self._run_case(pdf_file, expected_result)
     def testTwoLines(self):
         pdf_file = 'testcases/two_lines.pdf'
         expected_result = {
-            'title': 'Architecture of a Database System',
+                'title': u'A Demonstration of SciDB: A Science-Oriented DBMS',
             'authors': [# the first line of author names
-                        'P. Cudre-Mauroux',
-                        'H. Kimura',
-                        'K.-T. Lim',
-                        'J. Rogers',
-                        'R. Simakov',
-                        'E. Soroush',
-                        'P. Velikhov',
-                        'D. L. Wang'
+                        u'P. Cudre-Mauroux',
+                        u'H. Kimura',
+                        u'K.-T. Lim',
+                        u'J. Rogers',
+                        u'R. Simakov',
+                        u'E. Soroush',
+                        u'P. Velikhov',
+                        u'D. L. Wang'
                         # TO-DO: add the second line
                         ]
         };
-   #     self._run_case(pdf_file, expected_result)
+        self._run_case(pdf_file, expected_result)
     def _run_case(self, pdf_file, expected_result):
-        print 'Processing pdf "' + pdf_file + '"'
+        print '\nProcessing pdf "' + pdf_file + '"'
         p = subprocess.Popen("../pdf2json " + pdf_file, 
                              stdout=subprocess.PIPE, shell=True)
         pdf_json = p.stdout.read()
